@@ -61,16 +61,19 @@ const CustomTripPage = () => {
     
     try {
       const customTripData = {
-        destination: formData.destination,
-        departure_date: formData.startDate,
-        return_date: formData.endDate,
+        destination: formData.destination.trim(),
+        departure_date: new Date(formData.startDate).toISOString().split('T')[0],
+        return_date: new Date(formData.endDate).toISOString().split('T')[0],
         number_of_participants: parseInt(formData.travelers),
         budget_per_person: parseFloat(formData.budget),
-        interests: formData.preferences, // Asegúrate de que esto es un array
+        interests: formData.preferences.map(prefId => {
+          const pref = preferences.find(p => p.id === prefId);
+          return pref ? pref.label : prefId;
+        }),
         accommodation_type: formData.accommodationType
       };
 
-      console.log('Sending data:', customTripData); // Para debugging
+      console.log('Sending data:', customTripData);
 
       const response = await fetch('http://localhost:5000/api/custom-trips', {
         method: 'POST',
@@ -81,12 +84,12 @@ const CustomTripPage = () => {
         body: JSON.stringify(customTripData)
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al crear el viaje personalizado');
+        throw new Error(data.message || 'Error al crear el viaje personalizado');
       }
 
-      const data = await response.json();
       alert('¡Viaje personalizado creado con éxito!');
       navigate('/profile');
     } catch (error) {

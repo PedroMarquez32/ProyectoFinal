@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -21,10 +21,14 @@ const ProfilePage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
-    fetchUserData();
-    fetchUserBookings();
-    fetchUserFavorites();
-    fetchCustomTrips();
+    const loadUserData = async () => {
+      await fetchUserData();
+      await fetchUserBookings();
+      await fetchUserFavorites();
+      await fetchCustomTrips();
+    };
+
+    loadUserData();
   }, []);
 
   const fetchUserData = async () => {
@@ -49,12 +53,19 @@ const ProfilePage = () => {
   const fetchUserBookings = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/bookings/my-bookings', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
-      if (response.ok) {
-        const data = await response.json();
-        setBookings(data);
+      
+      if (!response.ok) {
+        throw new Error('Error al obtener las reservas');
       }
+      
+      const data = await response.json();
+      console.log('Bookings received:', data); // Debug log
+      setBookings(data.filter(booking => booking.trip !== null)); // Filtrar bookings con trip válido
     } catch (error) {
       console.error('Error fetching bookings:', error);
     }
@@ -63,12 +74,19 @@ const ProfilePage = () => {
   const fetchUserFavorites = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/favorites', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
-      if (response.ok) {
-        const data = await response.json();
-        setFavorites(data);
+      
+      if (!response.ok) {
+        throw new Error('Error al obtener los favoritos');
       }
+      
+      const data = await response.json();
+      console.log('Favorites received:', data); // Debug log
+      setFavorites(data.filter(favorite => favorite.trip !== null)); // Filtrar favoritos con trip válido
     } catch (error) {
       console.error('Error fetching favorites:', error);
     }
@@ -214,7 +232,9 @@ const ProfilePage = () => {
                   <div className="col-span-3 p-6">
                     <div className="flex flex-col h-full justify-between">
                       <div>
-                        <h3 className="text-xl font-semibold mb-2 text-gray-800">{booking.trip.destination}</h3>
+                        <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                          {booking.trip?.destination || 'Destino no disponible'}
+                        </h3>
                         <div className="space-y-2 text-gray-600">
                           <p className="flex items-center gap-2">
                             <span className="text-[#4DA8DA]">📅</span>
@@ -228,19 +248,21 @@ const ProfilePage = () => {
                             <span className="text-[#4DA8DA]">💰</span>
                             {booking.total_price}€
                           </p>
-                          <p className="flex items-center gap-2">
-                            <span className="text-[#4DA8DA]">🏨</span>
-                            {booking.room_type}
-                          </p>
+                          {booking.room_type && (
+                            <p className="flex items-center gap-2">
+                              <span className="text-[#4DA8DA]">🏨</span>
+                              {booking.room_type}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="mt-4">
-                        <button 
-                          onClick={() => navigate(`/destinations/${booking.trip_id}`)}
+                        <Link 
+                          to={`/destination/${booking.trip?.id}`}
                           className="text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
                         >
                           Ver Detalles del Viaje
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -249,12 +271,12 @@ const ProfilePage = () => {
             )) : (
               <div className="text-center py-12 bg-white rounded-lg shadow">
                 <p className="text-gray-600">No tienes ninguna reserva todavía</p>
-                <button 
-                  onClick={() => navigate('/destinations')}
+                <Link 
+                  to="/destinations"
                   className="mt-4 text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
                 >
                   Explorar Destinos
-                </button>
+                </Link>
               </div>
             )}
           </div>
@@ -284,17 +306,19 @@ const ProfilePage = () => {
                   <p className="text-sm text-gray-600 mb-4 line-clamp-2">
                     {favorite.trip?.description || 'Descripción no disponible'}
                   </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[#4DA8DA] font-bold">
-                      {favorite.trip?.price ? `${favorite.trip.price}€` : 'Precio no disponible'}
-                    </span>
-                    <button
-                      onClick={() => navigate(`/destinations/${favorite.trip?.id}`)}
-                      className="text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
-                    >
-                      Ver Detalles
-                    </button>
-                  </div>
+                  {favorite.trip?.id && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-[#4DA8DA] font-bold">
+                        {favorite.trip?.price ? `${favorite.trip.price}€` : 'Precio no disponible'}
+                      </span>
+                      <button
+                        onClick={() => navigate(`/destination/${favorite.trip.id}`)}
+                        className="text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
+                      >
+                        Ver Detalles
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )) : (
@@ -310,6 +334,7 @@ const ProfilePage = () => {
             )}
           </div>
         );
+
       case 'customTrips':
         return (
           <div className="grid grid-cols-1 gap-6">

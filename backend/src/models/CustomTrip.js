@@ -1,21 +1,9 @@
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  class CustomTrip extends Model {
-    static associate(models) {
-      CustomTrip.belongsTo(models.User, {
-        foreignKey: 'user_id',
-        targetKey: 'id'
-      });
-    }
-  }
+  class CustomTrip extends Model {}
 
   CustomTrip.init({
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true
-    },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -29,26 +17,20 @@ module.exports = (sequelize) => {
       allowNull: false
     },
     departure_date: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: false
     },
     return_date: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: false
     },
     number_of_participants: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      validate: {
-        min: 1
-      }
+      allowNull: false
     },
     budget_per_person: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      validate: {
-        min: 0
-      }
+      allowNull: false
     },
     interests: {
       type: DataTypes.ARRAY(DataTypes.STRING),
@@ -59,7 +41,7 @@ module.exports = (sequelize) => {
       allowNull: false
     },
     status: {
-      type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED', 'COMPLETED'),
+      type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED'),
       defaultValue: 'PENDING'
     }
   }, {

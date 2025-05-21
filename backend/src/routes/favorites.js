@@ -11,8 +11,11 @@ router.get('/', auth, async (req, res) => {
       include: [{
         model: Trip,
         attributes: ['id', 'title', 'destination', 'description', 'price', 'image']
-      }]
+      }],
+      order: [['created_at', 'DESC']]
     });
+
+    console.log('Found favorites:', favorites.length);
     res.json(favorites);
   } catch (error) {
     console.error('Error getting favorites:', error);

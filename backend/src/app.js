@@ -8,4 +8,8 @@ app.use(cors({
 }));
 
 app.use(express.json());
-app.use(cookieParser()); 
+app.use(cookieParser());
+
+const customTripsRouter = require('./routes/customTrips');
+
+app.use('/api/custom-trips', customTripsRouter);

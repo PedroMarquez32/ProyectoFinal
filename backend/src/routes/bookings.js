@@ -64,10 +64,21 @@ router.get('/my-bookings', auth, async (req, res) => {
       where: { user_id: req.user.id },
       include: [{
         model: Trip,
-        attributes: ['title', 'destination', 'image', 'description', 'price']
+        attributes: [
+          'id', 
+          'title', 
+          'destination', 
+          'image', 
+          'description', 
+          'price',
+          'duration',
+          'rating'
+        ]
       }],
       order: [['created_at', 'DESC']]
     });
+
+    console.log('Found bookings:', bookings.length);
     res.json(bookings);
   } catch (error) {
     console.error('Error getting bookings:', error);

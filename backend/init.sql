@@ -90,15 +90,15 @@ CREATE TABLE trip_images (
 -- Crear tabla de viajes personalizados
 CREATE TABLE custom_trips (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id),
     destination VARCHAR(255) NOT NULL,
-    departure_date VARCHAR(255) NOT NULL,
-    return_date VARCHAR(255) NOT NULL,
-    number_of_participants INTEGER NOT NULL CHECK (number_of_participants > 0),
-    budget_per_person FLOAT NOT NULL CHECK (budget_per_person > 0),
-    interests VARCHAR[] NOT NULL,
-    accommodation_type VARCHAR(255) NOT NULL,
-    status custom_trip_status NOT NULL DEFAULT 'PENDING',
+    departure_date DATE NOT NULL,
+    return_date DATE NOT NULL,
+    number_of_participants INTEGER NOT NULL,
+    budget_per_person DECIMAL(10,2) NOT NULL,
+    interests TEXT[] NOT NULL,
+    accommodation_type VARCHAR(50) NOT NULL,
+    status VARCHAR(20) DEFAULT 'PENDING',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
