@@ -1,19 +1,22 @@
-FROM node:16
+FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-# Copy only package.json first
-COPY package.json ./
+# Copiar package.json y package-lock.json
+COPY package*.json ./
 
-# Clean install dependencies
+# Instalar dependencias
 RUN npm install
 
-# Create uploads directory if needed
-RUN mkdir -p public/uploads && chmod -R 777 public
-
-# Copy the rest of the application code
+# Copiar el resto del código
 COPY . .
+
+# Crear directorios necesarios para uploads
+RUN mkdir -p public/uploads/avatars
+
+# Dar permisos necesarios
+RUN chmod -R 777 public/uploads
 
 EXPOSE 5000
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "start"]

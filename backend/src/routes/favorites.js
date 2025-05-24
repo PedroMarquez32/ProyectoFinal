@@ -15,7 +15,6 @@ router.get('/', auth, async (req, res) => {
       order: [['created_at', 'DESC']]
     });
 
-    console.log('Found favorites:', favorites.length);
     res.json(favorites);
   } catch (error) {
     console.error('Error getting favorites:', error);

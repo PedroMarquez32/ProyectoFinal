@@ -5,13 +5,13 @@ const UsersView = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
+  const [currentAdmin, setCurrentAdmin] = useState(null); // Renombrado para mayor claridad
   const [editingUser, setEditingUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchUsers();
-    fetchUserData();
+    fetchCurrentAdminData();
   }, []);
 
   const fetchUsers = async () => {
@@ -33,7 +33,8 @@ const UsersView = () => {
     }
   };
 
-  const fetchUserData = async () => {
+  // Renombrado para mayor claridad
+  const fetchCurrentAdminData = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/auth/me', {
         credentials: 'include'
@@ -41,47 +42,18 @@ const UsersView = () => {
       
       if (response.ok) {
         const data = await response.json();
-        setUser(data.user);
+        setCurrentAdmin(data.user);
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error('Error fetching admin data:', error);
     }
   };
 
-  const handleRoleChange = async (userId, newRole) => {
+  const handleEditUser = async (userId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${userId}/role`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ role: newRole })
-      });
+      if (!editingUser) return;
 
-      if (response.ok) {
-        fetchUsers(); // Refresh users list
-      } else {
-        throw new Error('Error updating user role');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error updating user role');
-    }
-  };
-
-  const handleEditUser = (userId) => {
-    const userToEdit = users.find(u => u.id === userId);
-    setEditingUser({
-      id: userToEdit.id,
-      username: userToEdit.username,
-      email: userToEdit.email
-    });
-  };
-
-  const handleSaveEdit = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/users/${editingUser.id}`, {
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -93,17 +65,65 @@ const UsersView = () => {
         })
       });
 
-      if (response.ok) {
-        fetchUsers();
-        setEditingUser(null);
-      } else {
-        throw new Error('Error updating user');
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al actualizar usuario');
       }
+
+      // Actualizar la lista de usuarios
+      setUsers(users.map(u => 
+        u.id === userId ? { ...u, ...editingUser } : u
+      ));
+      setEditingUser(null);
     } catch (error) {
       console.error('Error:', error);
-      alert('Error updating user');
+      alert(error.message);
     }
   };
+
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      // Prevenir que un admin cambie su propio rol
+      if (userId === currentAdmin?.id) {
+        alert('No puedes cambiar tu propio rol');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/users/${userId}/role`, {
+        method: 'PUT', // Cambiado de PATCH a PUT
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ role: newRole })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al actualizar el rol');
+      }
+
+      // Actualizar la lista de usuarios
+      setUsers(users.map(u => 
+        u.id === userId ? { ...u, role: newRole } : u
+      ));
+    } catch (error) {
+      console.error('Error:', error);
+      alert(error.message);
+    }
+  };
+
+  const renderRoleSelector = (userToEdit) => (
+    <select
+      value={userToEdit.role}
+      onChange={(e) => handleRoleChange(userToEdit.id, e.target.value)}
+      className="border rounded px-2 py-1 text-[#3a3a3c]"
+      disabled={userToEdit.id === currentAdmin?.id} // Solo deshabilitar si es el admin actual
+    >
+      <option value="USER">User</option>
+      <option value="ADMIN">Admin</option>
+    </select>
+  );
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -165,10 +185,10 @@ const UsersView = () => {
         <div className="absolute bottom-0 p-4 w-64 border-t border-gray-700">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-[#4DA8DA] rounded-full flex items-center justify-center text-white">
-              {user?.username ? user.username[0].toUpperCase() : 'A'}
+              {currentAdmin?.username ? currentAdmin.username[0].toUpperCase() : 'A'}
             </div>
             <div>
-              <div className="text-sm font-medium text-white">{user?.username || 'Loading...'}</div>
+              <div className="text-sm font-medium text-white">{currentAdmin?.username || 'Loading...'}</div>
               <div className="text-xs text-gray-400">Administrator</div>
             </div>
           </div>
@@ -199,7 +219,7 @@ const UsersView = () => {
                           type="text"
                           value={editingUser.username}
                           onChange={(e) => setEditingUser({...editingUser, username: e.target.value})}
-                          className="border rounded px-2 py-1"
+                          className="w-full border rounded px-2 py-1 focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent"
                         />
                       ) : (
                         user.username
@@ -211,28 +231,21 @@ const UsersView = () => {
                           type="email"
                           value={editingUser.email}
                           onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
-                          className="border rounded px-2 py-1"
+                          className="w-full border rounded px-2 py-1 focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent"
                         />
                       ) : (
                         user.email
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <select
-                        value={user.role}
-                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                        className="border rounded px-2 py-1 text-[#3a3a3c]"
-                      >
-                        <option value="USER">User</option>
-                        <option value="ADMIN">Admin</option>
-                      </select>
+                      {renderRoleSelector(user)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {editingUser?.id === user.id ? (
-                        <>
+                        <div className="flex space-x-2">
                           <button 
-                            onClick={handleSaveEdit}
-                            className="text-green-600 hover:text-green-800 mr-2"
+                            onClick={() => handleEditUser(user.id)}
+                            className="text-green-600 hover:text-green-800"
                           >
                             Save
                           </button>
@@ -242,10 +255,10 @@ const UsersView = () => {
                           >
                             Cancel
                           </button>
-                        </>
+                        </div>
                       ) : (
                         <button 
-                          onClick={() => handleEditUser(user.id)}
+                          onClick={() => setEditingUser(user)}
                           className="text-[#4DA8DA] hover:text-[#3a8bb9]"
                         >
                           Edit

@@ -1,15 +1,19 @@
 const cors = require('cors');
 
 app.use(cors({
-  origin: 'http://localhost:5173', // O el puerto donde corre tu frontend
+  origin: 'http://localhost:5173',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Accept']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
+  exposedHeaders: ['set-cookie'],
+  preflightContinue: true
 }));
 
 app.use(express.json());
 app.use(cookieParser());
 
 const customTripsRouter = require('./routes/customTrips');
-
 app.use('/api/custom-trips', customTripsRouter);
+
+const usersRouter = require('./routes/users');
+app.use('/api/users', usersRouter);

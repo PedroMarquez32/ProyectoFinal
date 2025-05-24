@@ -13,8 +13,7 @@ const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     email: '',
-    username: '',
-    avatar: ''
+    username: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updateError, setUpdateError] = useState(null);
@@ -64,10 +63,23 @@ const ProfilePage = () => {
       }
       
       const data = await response.json();
-      console.log('Bookings received:', data); // Debug log
-      setBookings(data.filter(booking => booking.trip !== null)); // Filtrar bookings con trip válido
+      console.log('Bookings data:', data); // Para debugging
+      
+      const validBookings = data.filter(booking => 
+        booking && 
+        booking.Trip && // Nota la T mayúscula por Sequelize
+        booking.Trip.id && 
+        booking.Trip.title && 
+        booking.Trip.destination
+      ).map(booking => ({
+        ...booking,
+        trip: booking.Trip // Normalizar la estructura
+      }));
+      
+      setBookings(validBookings);
     } catch (error) {
       console.error('Error fetching bookings:', error);
+      setBookings([]);
     }
   };
 
@@ -85,10 +97,22 @@ const ProfilePage = () => {
       }
       
       const data = await response.json();
-      console.log('Favorites received:', data); // Debug log
-      setFavorites(data.filter(favorite => favorite.trip !== null)); // Filtrar favoritos con trip válido
+      console.log('Favorites data:', data); // Para debugging
+      
+      const validFavorites = data.filter(favorite => 
+        favorite && 
+        favorite.Trip && // Nota la T mayúscula por Sequelize
+        favorite.Trip.id && 
+        favorite.Trip.title
+      ).map(favorite => ({
+        ...favorite,
+        trip: favorite.Trip // Normalizar la estructura
+      }));
+      
+      setFavorites(validFavorites);
     } catch (error) {
       console.error('Error fetching favorites:', error);
+      setFavorites([]);
     }
   };
 
@@ -121,10 +145,6 @@ const ProfilePage = () => {
       errors.username = 'El username debe tener al menos 3 caracteres';
     }
     
-    if (editForm.avatar && !/^https?:\/\/.+/.test(editForm.avatar)) {
-      errors.avatar = 'URL de imagen inválida';
-    }
-    
     return errors;
   };
 
@@ -147,7 +167,10 @@ const ProfilePage = () => {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify(editForm)
+        body: JSON.stringify({
+          email: editForm.email,
+          username: editForm.username
+        })
       });
 
       const data = await response.json();
@@ -155,7 +178,6 @@ const ProfilePage = () => {
       if (response.ok) {
         setIsEditing(false);
         fetchUserData();
-        // Mostrar mensaje de éxito
         alert('Perfil actualizado correctamente');
       } else {
         setUpdateError(data.message || 'Error al actualizar el perfil');
@@ -184,27 +206,6 @@ const ProfilePage = () => {
     }
   };
 
-  const handleImageUpload = async (file) => {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    try {
-      const response = await fetch('http://localhost:5000/api/users/upload-avatar', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setEditForm(prev => ({...prev, avatar: data.imageUrl}));
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setUpdateError('Error al subir la imagen');
-    }
-  };
-
   const renderContent = () => {
     switch (activeTab) {
       case 'myTrips':
@@ -215,9 +216,12 @@ const ProfilePage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4">
                   <div className="relative h-48 md:h-full">
                     <img 
-                      src={booking.trip?.image || '/placeholder-image.jpg'} 
-                      alt={booking.trip?.destination || 'Destino'} 
+                      src={booking.trip.image || '/placeholder-image.jpg'} 
+                      alt={booking.trip.title} 
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = '/placeholder-image.jpg';
+                      }}
                     />
                     <div className="absolute top-0 right-0 m-4">
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -233,8 +237,9 @@ const ProfilePage = () => {
                     <div className="flex flex-col h-full justify-between">
                       <div>
                         <h3 className="text-xl font-semibold mb-2 text-gray-800">
-                          {booking.trip?.destination || 'Destino no disponible'}
+                          {booking.trip.title}
                         </h3>
+                        <p className="text-gray-600 mb-4">{booking.trip.destination}</p>
                         <div className="space-y-2 text-gray-600">
                           <p className="flex items-center gap-2">
                             <span className="text-[#4DA8DA]">📅</span>
@@ -258,10 +263,11 @@ const ProfilePage = () => {
                       </div>
                       <div className="mt-4">
                         <Link 
-                          to={`/destination/${booking.trip?.id}`}
-                          className="text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
+                          to={`/destination/${booking.trip.id}`}
+                          className="inline-flex items-center text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
                         >
                           Ver Detalles del Viaje
+                          <span className="material-icons ml-1 text-sm">arrow_forward</span>
                         </Link>
                       </div>
                     </div>
@@ -273,7 +279,7 @@ const ProfilePage = () => {
                 <p className="text-gray-600">No tienes ninguna reserva todavía</p>
                 <Link 
                   to="/destinations"
-                  className="mt-4 text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
+                  className="mt-4 inline-block text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
                 >
                   Explorar Destinos
                 </Link>
@@ -288,12 +294,15 @@ const ProfilePage = () => {
               <div key={favorite.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
                 <div className="relative">
                   <img 
-                    src={favorite.trip?.image || '/placeholder-image.jpg'} 
-                    alt={favorite.trip?.destination || 'Destino'} 
+                    src={favorite.trip?.image || '/placeholder-image.jpg'}
+                    alt={favorite.trip?.title || 'Destino'}
                     className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      e.target.src = '/placeholder-image.jpg';
+                    }}
                   />
                   <button 
-                    onClick={() => handleRemoveFavorite(favorite.trip_id)}
+                    onClick={() => handleRemoveFavorite(favorite.trip.id)}
                     className="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-red-50"
                   >
                     ❤️
@@ -301,35 +310,33 @@ const ProfilePage = () => {
                 </div>
                 <div className="p-4">
                   <h3 className="font-semibold text-lg mb-2 text-gray-800">
-                    {favorite.trip?.destination || 'Destino no disponible'}
+                    {favorite.trip?.title || 'Título no disponible'}
                   </h3>
                   <p className="text-sm text-gray-600 mb-4 line-clamp-2">
                     {favorite.trip?.description || 'Descripción no disponible'}
                   </p>
-                  {favorite.trip?.id && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-[#4DA8DA] font-bold">
-                        {favorite.trip?.price ? `${favorite.trip.price}€` : 'Precio no disponible'}
-                      </span>
-                      <button
-                        onClick={() => navigate(`/destination/${favorite.trip.id}`)}
-                        className="text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
-                      >
-                        Ver Detalles
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#4DA8DA] font-bold">
+                      {favorite.trip?.price ? `${favorite.trip.price}€` : 'Precio no disponible'}
+                    </span>
+                    <Link
+                      to={`/destination/${favorite.trip?.id}`}
+                      className="text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
+                    >
+                      Ver Detalles
+                    </Link>
+                  </div>
                 </div>
               </div>
             )) : (
               <div className="col-span-full text-center py-12 bg-white rounded-lg shadow">
                 <p className="text-gray-600">No tienes destinos favoritos</p>
-                <button 
-                  onClick={() => navigate('/destinations')}
-                  className="mt-4 text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
+                <Link 
+                  to="/destinations"
+                  className="mt-4 inline-block text-[#4DA8DA] hover:text-[#3a8bb9] font-medium"
                 >
                   Explorar Destinos
-                </button>
+                </Link>
               </div>
             )}
           </div>
@@ -448,57 +455,30 @@ const ProfilePage = () => {
               <div className="bg-white rounded-xl p-8 shadow-lg max-w-2xl mx-auto">
                 <h3 className="text-2xl font-semibold text-gray-800 mb-6">Editar Perfil</h3>
                 <form onSubmit={handleEditSubmit} className="space-y-6">
-                  <div className="flex flex-col md:flex-row gap-8">
-                    {/* Sección de avatar */}
-                    <div className="flex-shrink-0">
-                      <div className="relative w-32 h-32 mx-auto">
-                        <img
-                          src={editForm.avatar || '/placeholder-avatar.jpg'}
-                          alt="Avatar"
-                          className="w-full h-full rounded-full object-cover border-4 border-white shadow-lg"
-                        />
-                        <label className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files[0];
-                              if (file) {
-                                handleImageUpload(file);
-                                setSelectedFile(file);
-                              }
-                            }}
-                          />
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                          </svg>
-                        </label>
-                      </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nombre de usuario
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.username}
+                        onChange={(e) => setEditForm({...editForm, username: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent transition-all text-gray-900"
+                        placeholder="Tu nombre de usuario"
+                      />
                     </div>
-
-                    {/* Sección de datos */}
-                    <div className="flex-grow space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de usuario</label>
-                        <input
-                          type="text"
-                          value={editForm.username}
-                          onChange={(e) => setEditForm({...editForm, username: e.target.value})}
-                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent transition-all"
-                          placeholder="Tu nombre de usuario"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input
-                          type="email"
-                          value={editForm.email}
-                          onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent transition-all"
-                          placeholder="tu@email.com"
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent transition-all text-gray-900"
+                        placeholder="tu@email.com"
+                      />
                     </div>
                   </div>
 
@@ -508,23 +488,13 @@ const ProfilePage = () => {
                     </div>
                   )}
 
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex gap-3">
                     <button
                       type="submit"
                       disabled={isSubmitting}
                       className="flex-1 bg-gradient-to-r from-[#4DA8DA] to-[#2980B9] text-white py-2.5 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                     >
-                      {isSubmitting ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          Guardando...
-                        </span>
-                      ) : (
-                        'Guardar Cambios'
-                      )}
+                      {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
                     </button>
                     <button
                       type="button"
