@@ -110,13 +110,14 @@ const DestinationDetailPage = () => {
 
       const data = await response.json();
       
+      // Asegurarse de que highlights e itinerary están formateados correctamente
       const formattedData = {
         ...data,
         overview: data.overview || data.description || '',
         highlights: Array.isArray(data.highlights) 
           ? data.highlights 
           : typeof data.highlights === 'string'
-            ? JSON.parse(data.highlights)
+            ? data.highlights.split(',')
             : [],
         itinerary: Array.isArray(data.itinerary) 
           ? data.itinerary 
@@ -125,28 +126,25 @@ const DestinationDetailPage = () => {
             : []
       };
 
+      // Formatear el itinerario
       const formattedItinerary = formattedData.itinerary.map(day => ({
         day: parseInt(day.day),
-        title: day.title || '',
+        title: day.title || `Día ${day.day}`,
         activities: Array.isArray(day.activities) ? day.activities : []
       })).sort((a, b) => a.day - b.day);
 
-      const formattedHighlights = Array.isArray(formattedData.highlights)
-        ? formattedData.highlights
-        : [];
-
       const finalData = {
         ...formattedData,
-        highlights: formattedHighlights,
+        highlights: formattedData.highlights,
         itinerary: formattedItinerary
       };
 
-      console.log('Destination data:', finalData);
+      console.log('Formatted destination data:', finalData); // Para depuración
       setDestination(finalData);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching destination:', error);
       setError(error.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -362,11 +360,10 @@ const DestinationDetailPage = () => {
 
   const renderDestinationDetails = () => (
     <div className="lg:col-span-2">
+      {/* Descripción General */}
       <div className="bg-white rounded-lg p-8 shadow-lg mb-8">
-        <h2 className="text-2xl font-bold mb-4 text-gray-900">Descripción General</h2>
-        <p className="text-gray-700 mb-6">
-          {destination.overview}
-        </p>
+        <h2 className="text-2xl font-bold mb-4 text-[#3a3a3c]">Descripción General</h2>
+        <p className="text-gray-700 mb-6">{destination.overview || destination.description}</p>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-gray-600">Duración:</p>
@@ -387,10 +384,11 @@ const DestinationDetailPage = () => {
         </div>
       </div>
 
+      {/* Destacados del Viaje */}
       <div className="bg-white rounded-lg p-8 shadow-lg mb-8">
         <h2 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Destacados del Viaje</h2>
         <div className="grid grid-cols-2 gap-6">
-          {destination.highlights?.length > 0 ? (
+          {Array.isArray(destination.highlights) && destination.highlights.length > 0 ? (
             destination.highlights.map((highlight, index) => (
               <div key={index} className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-[#4DA8DA] rounded-full flex items-center justify-center text-white shrink-0">
@@ -405,25 +403,28 @@ const DestinationDetailPage = () => {
         </div>
       </div>
 
+      {/* Itinerario */}
       <div className="bg-white rounded-lg p-8 shadow-lg">
         <h2 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Itinerario</h2>
         <div className="space-y-6">
-          {destination.itinerary?.length > 0 ? (
-            destination.itinerary.map((day) => (
-              <div key={day.day} className="border-b pb-6 last:border-0">
-                <h3 className="text-xl font-semibold mb-3 text-[#3a3a3c]">
-                  Día {day.day}: {day.title}
-                </h3>
-                <ul className="space-y-2">
-                  {day.activities?.map((activity, index) => (
-                    <li key={index} className="flex items-start gap-3 text-gray-700">
-                      <span className="text-[#4DA8DA] mt-1">•</span>
-                      {activity}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))
+          {destination.itinerary && Array.isArray(destination.itinerary) && destination.itinerary.length > 0 ? (
+            destination.itinerary
+              .sort((a, b) => a.day - b.day)
+              .map((day) => (
+                <div key={day.day} className="border-b pb-6 last:border-0">
+                  <h3 className="text-xl font-semibold mb-3 text-[#3a3a3c]">
+                    Día {day.day}: {day.title}
+                  </h3>
+                  <ul className="space-y-2">
+                    {day.activities?.map((activity, index) => (
+                      <li key={index} className="flex items-start gap-3 text-gray-700">
+                        <span className="text-[#4DA8DA] mt-1">•</span>
+                        {activity}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
           ) : (
             <p className="text-gray-700">No hay itinerario disponible.</p>
           )}

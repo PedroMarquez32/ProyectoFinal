@@ -43,16 +43,35 @@ router.get('/featured', async (req, res) => {
 // Get single trip
 router.get('/:id', async (req, res) => {
   try {
-    const trip = await Trip.findByPk(req.params.id);
+    const trip = await Trip.findByPk(req.params.id, {
+      attributes: [
+        'id', 'title', 'destination', 'description', 'price', 
+        'duration', 'rating', 'image', 'max_participants',
+        'overview', 'highlights', 'itinerary'
+      ],
+      raw: true // Agregar esta opción para obtener un objeto plano
+    });
     
     if (!trip) {
       return res.status(404).json({ message: 'Destino no encontrado' });
     }
+
+    // Asegurarse de que los campos JSON se parsean correctamente
+    const formattedTrip = {
+      ...trip,
+      highlights: Array.isArray(trip.highlights) ? trip.highlights : [],
+      itinerary: typeof trip.itinerary === 'string' ? 
+        JSON.parse(trip.itinerary) : 
+        (Array.isArray(trip.itinerary) ? trip.itinerary : [])
+    };
     
-    res.json(trip);
+    res.json(formattedTrip);
   } catch (error) {
     console.error('Error getting trip:', error);
-    res.status(500).json({ message: 'Error al obtener el destino' });
+    res.status(500).json({ 
+      message: 'Error al obtener el destino',
+      error: error.message 
+    });
   }
 });
 
