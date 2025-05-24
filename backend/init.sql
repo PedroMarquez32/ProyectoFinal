@@ -1,7 +1,7 @@
 -- Crear extensiones necesarias
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Primero eliminamos las tablas y tipos existentes en orden correcto
+-- Primero eliminamos las tablas existentes en orden correcto para evitar problemas de dependencias
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS favorites CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
@@ -13,13 +13,14 @@ DROP TABLE IF EXISTS features CASCADE;
 DROP TABLE IF EXISTS trips CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
+-- Eliminar tipos ENUM
 DROP TYPE IF EXISTS user_role CASCADE;
 DROP TYPE IF EXISTS booking_status CASCADE;
 DROP TYPE IF EXISTS notification_type CASCADE;
 DROP TYPE IF EXISTS notification_priority CASCADE;
 DROP TYPE IF EXISTS custom_trip_status CASCADE;
 
--- Crear los tipos ENUM primero
+-- Crear los tipos ENUM
 CREATE TYPE user_role AS ENUM ('USER', 'ADMIN');
 CREATE TYPE booking_status AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED');
 CREATE TYPE notification_type AS ENUM ('BOOKING_UPDATE', 'TRIP_REMINDER', 'CUSTOM_TRIP_UPDATE', 'FAVORITE_UPDATE', 'SYSTEM');
@@ -103,23 +104,23 @@ CREATE TABLE custom_trips (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Crear tabla de reservas
+-- Eliminar tabla existente
+DROP TABLE IF EXISTS bookings CASCADE;
+
+-- Crear tabla de reservas con las fechas correctas
 CREATE TABLE bookings (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,
-    custom_trip_id INTEGER REFERENCES custom_trips(id) ON DELETE CASCADE,
-    status booking_status NOT NULL DEFAULT 'PENDING',
-    booking_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER REFERENCES users(id),
+    trip_id INTEGER REFERENCES trips(id),
+    departure_date DATE NOT NULL,
+    return_date DATE NOT NULL,
+    room_type VARCHAR(50),
+    number_of_participants INTEGER DEFAULT 1,
     total_price DECIMAL(10,2) NOT NULL,
-    number_of_participants INTEGER NOT NULL,
     special_requests TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT trip_or_custom_trip CHECK (
-        (trip_id IS NOT NULL AND custom_trip_id IS NULL) OR
-        (trip_id IS NULL AND custom_trip_id IS NOT NULL)
-    )
+    status booking_status DEFAULT 'PENDING',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Crear tabla de reseñas
@@ -170,11 +171,12 @@ CREATE INDEX idx_notifications_is_read ON notifications(is_read);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);
 
--- Insertar usuarios de prueba (actualizado para usar el ENUM)
+-- Insertar usuarios de prueba (actualizado con un usuario adicional)
 INSERT INTO users (email, username, hashed_password, role, full_name, phone_number, address, is_active) 
 VALUES 
     ('admin@traveldream.com', 'admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewFpcqIYC1QyHgK6', 'ADMIN', 'Admin User', '+34600000000', 'Calle Admin 123', true),
-    ('prueba@gmail.com', 'prueba', '$2b$12$1Zw/jdqPVHNh.yVTwYz9/.vK0Q3G7EhB2dYoZFBcqwxK7s9v7fF0.', 'USER', 'Usuario Prueba', '+34600000001', 'Calle Prueba 123', true);
+    ('prueba@gmail.com', 'prueba', '$2b$12$1Zw/jdqPVHNh.yVTwYz9/.vK0Q3G7EhB2dYoZFBcqwxK7s9v7fF0.', 'USER', 'Usuario Prueba', '+34600000001', 'Calle Prueba 123', true),
+    ('test@gmail.com', 'test', '$2b$12$1Zw/jdqPVHNh.yVTwYz9/.vK0Q3G7EhB2dYoZFBcqwxK7s9v7fF0.', 'USER', 'Test User', '+34600000002', 'Calle Test 123', true);
 
 -- Primero insertamos los viajes base
 INSERT INTO trips (title, destination, description, price, duration, rating, image, start_date, end_date, max_participants, original_price, is_active) 
@@ -207,11 +209,12 @@ VALUES
     (2, 'https://images.unsplash.com/photo-1537996194471-e657df975ab4...', true),
     (3, 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8...', true);
 
--- Insertar bookings de ejemplo
-INSERT INTO bookings (user_id, trip_id, status, total_price, number_of_participants, special_requests) 
+-- Insertar bookings de ejemplo con las fechas correctas
+INSERT INTO bookings (user_id, trip_id, departure_date, return_date, room_type, number_of_participants, total_price, status) 
 VALUES 
-    (2, 1, 'CONFIRMED', 1499.99, 2, 'Habitación con vista al mar'),
-    (2, 2, 'PENDING', 1299.99, 1, 'Dieta vegetariana');
+    (1, 1, '2025-05-25', '2025-05-28', 'standard', 2, 1200.00, 'PENDING'),
+    (2, 2, '2025-06-15', '2025-06-18', 'deluxe', 3, 2500.00, 'CONFIRMED'),
+    (2, 3, '2025-07-10', '2025-07-13', 'superior', 2, 1800.00, 'PENDING');
 
 -- Insertar favoritos de ejemplo
 INSERT INTO favorites (user_id, trip_id)

@@ -83,9 +83,13 @@ router.get('/my-requests', auth, async (req, res) => {
 router.get('/', [auth, isAdmin], async (req, res) => {
   try {
     const query = `
-      SELECT ct.*, u.username 
+      SELECT 
+        ct.*,
+        u.username,
+        u.email,
+        u.id as user_id
       FROM custom_trips ct
-      JOIN users u ON ct.user_id = u.id
+      LEFT JOIN users u ON ct.user_id = u.id
       ORDER BY ct.created_at DESC
     `;
 
@@ -93,9 +97,20 @@ router.get('/', [auth, isAdmin], async (req, res) => {
       type: sequelize.QueryTypes.SELECT
     });
 
-    res.json(results);
+    const formattedResults = results.map(trip => ({
+      ...trip,
+      User: {
+        id: trip.user_id,
+        username: trip.username,
+        email: trip.email
+      },
+      departure_date: trip.departure_date,
+      return_date: trip.return_date
+    }));
+
+    res.json(formattedResults);
   } catch (error) {
-    console.error('Error fetching all custom trips:', error);
+    console.error('Error:', error);
     res.status(500).json({ message: 'Error al obtener los viajes personalizados' });
   }
 });
@@ -126,6 +141,73 @@ router.patch('/:id', [auth, isAdmin], async (req, res) => {
   } catch (error) {
     console.error('Error updating custom trip:', error);
     res.status(500).json({ message: 'Error al actualizar el viaje personalizado' });
+  }
+});
+
+// Update custom trip (admin only)
+router.put('/:id', [auth, isAdmin], async (req, res) => {
+  try {
+    const query = `
+      UPDATE custom_trips 
+      SET 
+        destination = $1,
+        departure_date = $2,
+        return_date = $3,
+        number_of_participants = $4,
+        budget_per_person = $5,
+        accommodation_type = $6,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $7
+      RETURNING *
+    `;
+
+    const values = [
+      req.body.destination,
+      req.body.departure_date,
+      req.body.return_date,
+      req.body.number_of_participants,
+      req.body.budget_per_person,
+      req.body.accommodation_type,
+      req.params.id
+    ];
+
+    const [result] = await sequelize.query(query, {
+      bind: values,
+      type: sequelize.QueryTypes.UPDATE
+    });
+
+    if (!result) {
+      return res.status(404).json({ message: 'Custom trip not found' });
+    }
+
+    // Obtener el viaje actualizado con la información del usuario
+    const updatedTrip = await sequelize.query(`
+      SELECT 
+        ct.*,
+        u.username,
+        u.email,
+        u.id as user_id
+      FROM custom_trips ct
+      LEFT JOIN users u ON ct.user_id = u.id
+      WHERE ct.id = $1
+    `, {
+      bind: [req.params.id],
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    const formattedTrip = {
+      ...updatedTrip[0],
+      User: {
+        id: updatedTrip[0].user_id,
+        username: updatedTrip[0].username,
+        email: updatedTrip[0].email
+      }
+    };
+
+    res.json(formattedTrip);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Error updating custom trip' });
   }
 });
 

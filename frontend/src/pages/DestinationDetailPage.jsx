@@ -188,11 +188,12 @@ const DestinationDetailPage = () => {
         credentials: 'include',
         body: JSON.stringify({
           trip_id: destination.id,
-          start_date: bookingForm.startDate,
-          end_date: bookingForm.endDate,
+          departure_date: bookingForm.startDate,    // Cambiado de start_date a departure_date
+          return_date: bookingForm.endDate,         // Cambiado de end_date a return_date
           room_type: bookingForm.roomType,
           number_of_participants: parseInt(bookingForm.guests),
-          total_price: calculateTotal()
+          total_price: parseFloat(calculateTotal()),
+          special_requests: '' // Campo opcional
         })
       });
 

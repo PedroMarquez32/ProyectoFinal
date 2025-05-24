@@ -36,21 +36,29 @@ module.exports = (sequelize) => {
         key: 'id'
       }
     },
-    status: {
+    departure_date: {
+      type: DataTypes.DATE,
+      allowNull: false
+    },
+    return_date: {
+      type: DataTypes.DATE,
+      allowNull: false
+    },
+    room_type: {
       type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: 'PENDING',
-      validate: {
-        isIn: [['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']]
-      }
+      allowNull: true
     },
     number_of_participants: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      defaultValue: 1
     },
     total_price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
+    },
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: 'PENDING'
     },
     special_requests: {
       type: DataTypes.TEXT,

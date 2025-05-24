@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const { Booking, Trip } = require('../models');
+const { Booking, Trip, User } = require('../models');
 const { auth, isAdmin } = require('../middleware/auth');
 
 // Get booking status
@@ -38,8 +38,8 @@ router.post('/', auth, async (req, res) => {
     const booking = await Booking.create({
       user_id: req.user.id,
       trip_id: req.body.trip_id,
-      start_date: req.body.start_date,
-      end_date: req.body.end_date,
+      departure_date: req.body.departure_date, // Nuevo campo
+      return_date: req.body.return_date,     // Nuevo campo
       room_type: req.body.room_type,
       number_of_participants: req.body.number_of_participants,
       total_price: req.body.total_price,
@@ -83,14 +83,37 @@ router.get('/', [auth, isAdmin], async (req, res) => {
       include: [
         {
           model: Trip,
-          attributes: ['title', 'destination', 'start_date', 'end_date']
+          attributes: ['id', 'title', 'destination', 'price', 'image']
+        },
+        {
+          model: User,
+          attributes: ['id', 'username', 'email'],
+          required: false // Cambiado a false para permitir bookings sin usuario
         }
-      ]
+      ],
+      order: [['created_at', 'DESC']]
     });
-    res.json(bookings);
+
+    const formattedBookings = bookings.map(booking => {
+      const plainBooking = booking.get({ plain: true });
+      return {
+        ...plainBooking,
+        username: plainBooking.User ? plainBooking.User.username : 'Usuario no disponible',
+        userEmail: plainBooking.User ? plainBooking.User.email : 'Email no disponible',
+        departure_date: plainBooking.departure_date,
+        return_date: plainBooking.return_date,
+        Trip: plainBooking.Trip || {},
+        User: plainBooking.User || {}
+      };
+    });
+
+    res.json(formattedBookings);
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).json({ message: 'Error del servidor' });
+    res.status(500).json({ 
+      message: 'Error del servidor',
+      error: error.message 
+    });
   }
 });
 
@@ -125,8 +148,8 @@ router.put('/:id', [auth, isAdmin], async (req, res) => {
 
     // Actualizar la reserva
     await booking.update({
-      start_date: req.body.start_date,
-      end_date: req.body.end_date,
+      departure_date: req.body.start_date,  // Mapeo de start_date a departure_date
+      return_date: req.body.end_date,     // Mapeo de end_date a return_date
       room_type: req.body.room_type,
       number_of_participants: req.body.number_of_participants,
       total_price: req.body.total_price,

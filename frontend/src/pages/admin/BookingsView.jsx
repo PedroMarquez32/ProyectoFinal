@@ -36,16 +36,56 @@ const BookingsView = () => {
 
   const fetchBookings = async () => {
     try {
+      setLoading(true);
       const response = await fetch('http://localhost:5000/api/bookings', {
         credentials: 'include'
       });
       
-      if (!response.ok) throw new Error('Error fetching bookings');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error fetching bookings');
+      }
       
       const data = await response.json();
-      setBookings(data);
+      
+      const formattedBookings = data.map(booking => {
+        try {
+          const departureDate = booking.departure_date ? new Date(booking.departure_date) : null;
+          const returnDate = booking.return_date ? new Date(booking.return_date) : null;
+
+          return {
+            ...booking,
+            username: booking.User?.username || booking.username || 'Usuario no disponible',
+            userEmail: booking.User?.email || booking.userEmail || 'Email no disponible',
+            start_date: departureDate ? departureDate.toLocaleDateString('es-ES') : 'No disponible',
+            end_date: returnDate ? returnDate.toLocaleDateString('es-ES') : 'No disponible',
+            originalStartDate: departureDate ? departureDate.toISOString().split('T')[0] : '',
+            originalEndDate: returnDate ? returnDate.toISOString().split('T')[0] : '',
+            Trip: booking.Trip || {},
+            User: booking.User || {}
+          };
+        } catch (error) {
+          console.error('Error formatting booking:', error);
+          return {
+            ...booking,
+            username: 'Usuario no disponible',
+            userEmail: 'Email no disponible',
+            start_date: 'No disponible',
+            end_date: 'No disponible',
+            originalStartDate: '',
+            originalEndDate: '',
+            Trip: {},
+            User: {}
+          };
+        }
+      });
+      
+      setBookings(formattedBookings);
     } catch (error) {
       console.error('Error:', error);
+      setBookings([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -184,6 +224,28 @@ const BookingsView = () => {
     }
   };
 
+  const handleEdit = (booking) => {
+    try {
+      const formattedBooking = {
+        id: booking.id,
+        start_date: booking.originalStartDate || '',
+        end_date: booking.originalEndDate || '',
+        room_type: booking.room_type || '',
+        number_of_participants: booking.number_of_participants || 1,
+        total_price: booking.total_price || 0,
+        special_requests: booking.special_requests || '',
+        Trip: booking.Trip || {},
+        User: booking.User || {},
+        status: booking.status
+      };
+      
+      setEditingBooking(formattedBooking);
+      setShowEditModal(true);
+    } catch (error) {
+      console.error('Error formatting booking data:', error);
+    }
+  };
+
   const renderActionButtons = (booking) => (
     <div className="space-x-2">
       <button
@@ -217,10 +279,7 @@ const BookingsView = () => {
         Cancel
       </button>
       <button
-        onClick={() => {
-          setEditingBooking(booking);
-          setShowEditModal(true);
-        }}
+        onClick={() => handleEdit(booking)}
         className="px-3 py-1 rounded text-sm font-medium bg-[#4DA8DA] text-white hover:bg-[#3a8bb9]"
       >
         Edit
@@ -337,11 +396,26 @@ const BookingsView = () => {
               <tbody className="divide-y divide-gray-200">
                 {bookings.map((booking) => (
                   <tr key={booking.id} className="text-gray-900">
-                    <td className="px-6 py-4">{booking.Trip?.title}</td>
-                    <td className="px-6 py-4">{booking.User?.username}</td>
                     <td className="px-6 py-4">
-                      {new Date(booking.start_date).toLocaleDateString()} - 
-                      {new Date(booking.end_date).toLocaleDateString()}
+                      <div className="flex items-center space-x-3">
+                        <img 
+                          src={booking.Trip?.image || '/placeholder-image.jpg'} 
+                          alt={booking.Trip?.title || 'Destino'}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <div>
+                          <div className="font-medium">{booking.Trip?.title || 'Destino no disponible'}</div>
+                          <div className="text-sm text-gray-500">{booking.Trip?.destination || 'Ubicación no disponible'}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="font-medium">{booking.User?.username || booking.username}</div>
+                      <div className="text-sm text-gray-500">{booking.User?.email || booking.userEmail}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>{new Date(booking.departure_date).toLocaleDateString('es-ES')}</div>
+                      <div>{new Date(booking.return_date).toLocaleDateString('es-ES')}</div>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -367,7 +441,7 @@ const BookingsView = () => {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Destination</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Budget</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Dates</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Actions</th>
                 </tr>
@@ -375,9 +449,16 @@ const BookingsView = () => {
               <tbody className="divide-y divide-gray-200">
                 {customTrips.map((trip) => (
                   <tr key={trip.id} className="text-gray-900">
+                    {/* Custom Trips Table */}
                     <td className="px-6 py-4">{trip.destination}</td>
-                    <td className="px-6 py-4">{trip.User?.username}</td>
-                    <td className="px-6 py-4">{trip.budget_per_person}€</td>
+                    <td className="px-6 py-4">
+                      <div className="font-medium">{trip.User?.username || 'Usuario no disponible'}</div>
+                      <div className="text-sm text-gray-500">{trip.User?.email || 'Email no disponible'}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>{new Date(trip.departure_date).toLocaleDateString('es-ES')}</div>
+                      <div>{new Date(trip.return_date).toLocaleDateString('es-ES')}</div>
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         trip.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
@@ -442,12 +523,31 @@ const BookingsView = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-lg p-6 max-w-lg w-full">
               <h2 className="text-xl font-bold mb-4 text-gray-900">Editar Reserva</h2>
+              
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3 mb-4">
+                  <img 
+                    src={editingBooking.Trip?.image || '/placeholder-image.jpg'} 
+                    alt={editingBooking.Trip?.title}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div>
+                    <div className="font-medium">{editingBooking.Trip?.title}</div>
+                    <div className="text-sm text-gray-500">{editingBooking.Trip?.destination}</div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600">
+                  <div>Usuario: {editingBooking.User?.username}</div>
+                  <div>Email: {editingBooking.User?.email}</div>
+                </div>
+              </div>
+
               <form onSubmit={handleEditBooking} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">Fecha de Inicio</label>
                   <input
                     type="date"
-                    value={editingBooking.start_date?.split('T')[0]}
+                    value={editingBooking.start_date}
                     onChange={(e) => setEditingBooking({
                       ...editingBooking,
                       start_date: e.target.value
@@ -460,7 +560,7 @@ const BookingsView = () => {
                   <label className="block text-sm font-medium text-gray-900 mb-1">Fecha de Fin</label>
                   <input
                     type="date"
-                    value={editingBooking.end_date?.split('T')[0]}
+                    value={editingBooking.end_date}
                     onChange={(e) => setEditingBooking({
                       ...editingBooking,
                       end_date: e.target.value

@@ -8,13 +8,16 @@ const DestinationCard = ({ destination }) => {
         src={destination.image} 
         alt={destination.title} 
         className="w-full h-48 object-cover"
+        onError={(e) => {
+          e.target.src = '/placeholder-image.jpg';
+        }}
       />
       <div className="p-4">
         <h3 className="text-xl font-semibold mb-2">{destination.title}</h3>
         <p className="text-gray-600 mb-2">{destination.destination}</p>
-        <p className="text-gray-800 font-bold">${destination.price}</p>
+        <p className="text-gray-800 font-bold">{destination.price}€</p>
         <Link 
-          to={`/destinations/${destination.id}`}
+          to={`/destination/${destination.id}`}
           className="mt-3 inline-block bg-[#4DA8DA] text-white px-4 py-2 rounded hover:bg-[#357A9E] transition-colors"
         >
           Ver más
@@ -24,4 +27,4 @@ const DestinationCard = ({ destination }) => {
   );
 };
 
-export default DestinationCard; 
+export default DestinationCard;
