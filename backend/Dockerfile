@@ -5,17 +5,15 @@ WORKDIR /usr/src/app
 # Copiar package.json y package-lock.json
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm install
+# Instalar dependencias incluyendo Stripe
+RUN npm install && \
+    npm install stripe
 
 # Copiar el resto del código
 COPY . .
 
-# Crear directorios necesarios para uploads
-RUN mkdir -p public/uploads/avatars
-
-# Dar permisos necesarios
-RUN chmod -R 777 public/uploads
+# Crear directorios necesarios
+RUN mkdir -p public/uploads
 
 EXPOSE 5000
 

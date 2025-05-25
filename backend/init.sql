@@ -19,6 +19,7 @@ DROP TYPE IF EXISTS booking_status CASCADE;
 DROP TYPE IF EXISTS notification_type CASCADE;
 DROP TYPE IF EXISTS notification_priority CASCADE;
 DROP TYPE IF EXISTS custom_trip_status CASCADE;
+DROP TYPE IF EXISTS payment_status CASCADE;
 
 -- Crear los tipos ENUM
 CREATE TYPE user_role AS ENUM ('USER', 'ADMIN');
@@ -26,6 +27,7 @@ CREATE TYPE booking_status AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLE
 CREATE TYPE notification_type AS ENUM ('BOOKING_UPDATE', 'TRIP_REMINDER', 'CUSTOM_TRIP_UPDATE', 'FAVORITE_UPDATE', 'SYSTEM');
 CREATE TYPE notification_priority AS ENUM ('LOW', 'MEDIUM', 'HIGH');
 CREATE TYPE custom_trip_status AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'COMPLETED');
+CREATE TYPE payment_status AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED');
 
 -- Crear tablas en orden correcto
 CREATE TABLE users (
@@ -155,6 +157,17 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT false,
     notification_metadata JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Crear tabla de pagos
+CREATE TABLE payments (
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER REFERENCES bookings(id),
+    stripe_payment_intent_id VARCHAR(255),
+    amount DECIMAL(10,2) NOT NULL,
+    status payment_status DEFAULT 'PENDING',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Crear índices para mejorar el rendimiento

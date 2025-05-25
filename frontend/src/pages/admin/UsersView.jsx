@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import AdminSidebar from '../../components/AdminSidebar';
 
 const UsersView = () => {
   const [users, setUsers] = useState([]);
@@ -129,73 +130,8 @@ const UsersView = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <div className="w-64 bg-[#3a3a3c] min-h-screen fixed left-0">
-        <div className="p-4 border-b border-gray-700">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <img src="/logo.png" alt="TravelDream" className="w-8 h-8" />
-            <span className="font-bold text-white">TravelDream</span>
-          </div>
-          <div className="text-sm text-gray-400">Admin Dashboard</div>
-        </div>
-        
-        <nav className="p-4">
-          <ul className="space-y-2">
-            <li>
-              <Link to="/admin" className="flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors">
-                <span className="material-icons">dashboard</span>
-                <span>Dashboard</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin/users" className="flex items-center gap-3 p-2 text-white bg-[#4DA8DA] rounded transition-colors">
-                <span className="material-icons">people</span>
-                <span>Users</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin/destinations" className="flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors">
-                <span className="material-icons">place</span>
-                <span>Destinations</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin/bookings" className="flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors">
-                <span className="material-icons">book</span>
-                <span>Bookings</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin/finances" className="flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors">
-                <span className="material-icons">attach_money</span>
-                <span>Finances</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin/reviews" className="flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors">
-                <span className="material-icons">star</span>
-                <span>Reviews</span>
-              </Link>
-            </li>
-          </ul>
-        </nav>
-
-        {/* User Profile Section */}
-        <div className="absolute bottom-0 p-4 w-64 border-t border-gray-700">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#4DA8DA] rounded-full flex items-center justify-center text-white">
-              {currentAdmin?.username ? currentAdmin.username[0].toUpperCase() : 'A'}
-            </div>
-            <div>
-              <div className="text-sm font-medium text-white">{currentAdmin?.username || 'Loading...'}</div>
-              <div className="text-xs text-gray-400">Administrator</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
+    <div className="flex min-h-screen bg-gray-100">
+      <AdminSidebar user={currentAdmin} />
       <div className="ml-64 flex-1 p-8">
         <h1 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Users Management</h1>
         

@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FavoriteButton from '../components/FavoriteButton';
 import ReviewSection from '../components/ReviewSection';
+import PaymentModal from '../components/PaymentModal';
 
 const DestinationDetailPage = () => {
   const { id } = useParams();
@@ -20,6 +21,7 @@ const DestinationDetailPage = () => {
   const [bookingStatus, setBookingStatus] = useState(null);
   const [user, setUser] = useState(null);
   const [isFormDisabled, setIsFormDisabled] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     fetchUserData();
@@ -212,15 +214,38 @@ const DestinationDetailPage = () => {
   };
 
   const renderBookingButton = () => {
+    const renderPaymentButton = () => (
+      <button
+        onClick={() => setShowPaymentModal(true)}
+        className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium mt-2"
+      >
+        Realizar Pago Online
+      </button>
+    );
+
     switch (bookingStatus) {
       case 'PENDING':
         return (
-          <button
-            disabled
-            className="w-full bg-yellow-500 text-white py-3 rounded-lg font-medium cursor-not-allowed"
-          >
-            Reserva Pendiente
-          </button>
+          <div className="space-y-2">
+            <button
+              disabled
+              className="w-full bg-yellow-500 text-white py-3 rounded-lg font-medium cursor-not-allowed"
+            >
+              Reserva Pendiente
+            </button>
+            {renderPaymentButton()}
+            {showPaymentModal && (
+              <PaymentModal
+                bookingId={currentBooking?.id}
+                onSuccess={() => {
+                  setBookingStatus('CONFIRMED');
+                  setShowPaymentModal(false);
+                  alert('¡Pago realizado con éxito!');
+                }}
+                onClose={() => setShowPaymentModal(false)}
+              />
+            )}
+          </div>
         );
       case 'CONFIRMED':
         return (

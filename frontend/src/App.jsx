@@ -15,6 +15,7 @@ import UsersView from './pages/admin/UsersView';
 import DestinationsView from './pages/admin/DestinationsView';
 import BookingsView from './pages/admin/BookingsView';
 import ReviewsView from './pages/admin/ReviewsView';
+import FinancesView from './pages/admin/FinancesView';
 
 function App() {
   return (
@@ -84,6 +85,16 @@ function App() {
           <AdminRoute>
             <Layout><ReviewsView /></Layout>
           </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/finances" 
+        element={
+          <ProtectedRoute>
+            <AdminRoute>
+              <FinancesView />
+            </AdminRoute>
+          </ProtectedRoute>
         } 
       />
     </Routes>

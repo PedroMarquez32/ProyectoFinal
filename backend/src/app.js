@@ -17,3 +17,6 @@ app.use('/api/custom-trips', customTripsRouter);
 
 const usersRouter = require('./routes/users');
 app.use('/api/users', usersRouter);
+
+const financesRouter = require('./routes/finances');
+app.use('/api/finances', financesRouter);
