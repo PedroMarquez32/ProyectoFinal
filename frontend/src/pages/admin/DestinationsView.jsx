@@ -77,10 +77,7 @@ const DestinationsView = () => {
       {/* Sidebar */}
       <div className="w-64 bg-[#3a3a3c] min-h-screen fixed left-0">
         <div className="p-4 border-b border-gray-700">
-          <div 
-            className="flex items-center gap-2 cursor-pointer" 
-            onClick={() => navigate('/')}
-          >
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
             <img src="/logo.png" alt="TravelDream" className="w-8 h-8" />
             <span className="font-bold text-white">TravelDream</span>
           </div>
@@ -129,13 +126,25 @@ const DestinationsView = () => {
                   location.pathname === '/admin/bookings' ? 'bg-[#4DA8DA]' : ''
                 }`}
               >
-                <span className="material-icons">book_online</span>
+                <span className="material-icons">book</span>
                 <span>Bookings</span>
+              </Link>
+            </li>
+            <li>
+              <Link 
+                to="/admin/reviews" 
+                className={`flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors ${
+                  location.pathname === '/admin/reviews' ? 'bg-[#4DA8DA]' : ''
+                }`}
+              >
+                <span className="material-icons">star</span>
+                <span>Reviews</span>
               </Link>
             </li>
           </ul>
         </nav>
 
+        {/* User Profile Section */}
         {user && (
           <div className="absolute bottom-0 p-4 w-64 border-t border-gray-700">
             <div className="flex items-center gap-2">

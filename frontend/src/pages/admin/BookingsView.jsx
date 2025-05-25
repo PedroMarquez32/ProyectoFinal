@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const BookingsView = () => {
   const [bookings, setBookings] = useState([]);
@@ -12,6 +12,7 @@ const BookingsView = () => {
   const [editingCustomTrip, setEditingCustomTrip] = useState(null);
   const [showCustomTripModal, setShowCustomTripModal] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     fetchUserData();
@@ -292,32 +293,64 @@ const BookingsView = () => {
         <nav className="p-4">
           <ul className="space-y-2">
             <li>
-              <Link to="/admin" className="flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors">
+              <Link 
+                to="/admin" 
+                className={`flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors ${
+                  location.pathname === '/admin' ? 'bg-[#4DA8DA]' : ''
+                }`}
+              >
                 <span className="material-icons">dashboard</span>
                 <span>Dashboard</span>
               </Link>
             </li>
             <li>
-              <Link to="/admin/users" className="flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors">
+              <Link 
+                to="/admin/users" 
+                className={`flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors ${
+                  location.pathname === '/admin/users' ? 'bg-[#4DA8DA]' : ''
+                }`}
+              >
                 <span className="material-icons">people</span>
                 <span>Users</span>
               </Link>
             </li>
             <li>
-              <Link to="/admin/destinations" className="flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors">
+              <Link 
+                to="/admin/destinations" 
+                className={`flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors ${
+                  location.pathname === '/admin/destinations' ? 'bg-[#4DA8DA]' : ''
+                }`}
+              >
                 <span className="material-icons">place</span>
                 <span>Destinations</span>
               </Link>
             </li>
             <li>
-              <Link to="/admin/bookings" className="flex items-center gap-3 p-2 text-white bg-[#4DA8DA] rounded transition-colors">
+              <Link 
+                to="/admin/bookings" 
+                className={`flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors ${
+                  location.pathname === '/admin/bookings' ? 'bg-[#4DA8DA]' : ''
+                }`}
+              >
                 <span className="material-icons">book</span>
                 <span>Bookings</span>
+              </Link>
+            </li>
+            <li>
+              <Link 
+                to="/admin/reviews" 
+                className={`flex items-center gap-3 p-2 text-white hover:bg-[#4DA8DA] rounded transition-colors ${
+                  location.pathname === '/admin/reviews' ? 'bg-[#4DA8DA]' : ''
+                }`}
+              >
+                <span className="material-icons">star</span>
+                <span>Reviews</span>
               </Link>
             </li>
           </ul>
         </nav>
 
+        {/* User Profile Section */}
         {user && (
           <div className="absolute bottom-0 p-4 w-64 border-t border-gray-700">
             <div className="flex items-center gap-2">

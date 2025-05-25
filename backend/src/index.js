@@ -38,6 +38,8 @@ app.use('/api/custom-trips', customTripsRoutes);
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/favorites', require('./routes/favorites'));
 app.use('/api/users', require('./routes/users'));
+const reviewsRouter = require('./routes/reviews');
+app.use('/api/reviews', reviewsRouter);
 
 // Error handling
 app.use(errorHandler);

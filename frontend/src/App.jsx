@@ -14,6 +14,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import UsersView from './pages/admin/UsersView';
 import DestinationsView from './pages/admin/DestinationsView';
 import BookingsView from './pages/admin/BookingsView';
+import ReviewsView from './pages/admin/ReviewsView';
 
 function App() {
   return (
@@ -74,6 +75,14 @@ function App() {
         element={
           <AdminRoute>
             <Layout><BookingsView /></Layout>
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/reviews" 
+        element={
+          <AdminRoute>
+            <Layout><ReviewsView /></Layout>
           </AdminRoute>
         } 
       />

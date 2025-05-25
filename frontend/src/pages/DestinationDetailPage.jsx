@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FavoriteButton from '../components/FavoriteButton';
+import ReviewSection from '../components/ReviewSection';
 
 const DestinationDetailPage = () => {
   const { id } = useParams();
@@ -430,6 +431,9 @@ const DestinationDetailPage = () => {
           )}
         </div>
       </div>
+
+      {/* Sección de Reseñas */}
+      <ReviewSection tripId={id} user={user} />
     </div>
   );
 
