@@ -87,19 +87,19 @@ router.get('/', [auth, isAdmin], async (req, res) => {
         },
         {
           model: User,
-          attributes: ['id', 'username', 'email'],
-          required: false // Cambiado a false para permitir bookings sin usuario
+          attributes: ['id', 'username', 'email']
         }
       ],
       order: [['created_at', 'DESC']]
     });
 
+    // Asegurarse de que los datos del usuario están incluidos
     const formattedBookings = bookings.map(booking => {
       const plainBooking = booking.get({ plain: true });
       return {
         ...plainBooking,
-        username: plainBooking.User ? plainBooking.User.username : 'Usuario no disponible',
-        userEmail: plainBooking.User ? plainBooking.User.email : 'Email no disponible',
+        username: plainBooking.User?.username || 'Usuario no disponible',
+        userEmail: plainBooking.User?.email || 'Email no disponible',
         departure_date: plainBooking.departure_date,
         return_date: plainBooking.return_date,
         Trip: plainBooking.Trip || {},

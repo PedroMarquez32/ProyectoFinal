@@ -55,8 +55,8 @@ const BookingsView = () => {
 
           return {
             ...booking,
-            username: booking.User?.username || booking.username || 'Usuario no disponible',
-            userEmail: booking.User?.email || booking.userEmail || 'Email no disponible',
+            username: booking.User?.username || 'Usuario no disponible',
+            userEmail: booking.User?.email || 'Email no disponible',
             start_date: departureDate ? departureDate.toLocaleDateString('es-ES') : 'No disponible',
             end_date: returnDate ? returnDate.toLocaleDateString('es-ES') : 'No disponible',
             originalStartDate: departureDate ? departureDate.toISOString().split('T')[0] : '',
@@ -66,17 +66,7 @@ const BookingsView = () => {
           };
         } catch (error) {
           console.error('Error formatting booking:', error);
-          return {
-            ...booking,
-            username: 'Usuario no disponible',
-            userEmail: 'Email no disponible',
-            start_date: 'No disponible',
-            end_date: 'No disponible',
-            originalStartDate: '',
-            originalEndDate: '',
-            Trip: {},
-            User: {}
-          };
+          return booking;
         }
       });
       
@@ -410,8 +400,12 @@ const BookingsView = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium">{booking.User?.username || booking.username}</div>
-                      <div className="text-sm text-gray-500">{booking.User?.email || booking.userEmail}</div>
+                      <div className="font-medium">
+                        {booking.user?.username || 'Usuario no disponible'}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {booking.user?.email || 'Email no disponible'}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div>{new Date(booking.departure_date).toLocaleDateString('es-ES')}</div>
