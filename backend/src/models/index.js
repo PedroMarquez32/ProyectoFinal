@@ -18,6 +18,7 @@ db.Favorite = require('./Favorite')(sequelize);
 db.Feature = require('./Feature')(sequelize);
 db.TripImage = require('./TripImage')(sequelize);
 db.Review = require('./Review')(sequelize, Sequelize);
+db.Payment = require('./Payment')(sequelize);
 
 // Definimos las relaciones
 db.User.hasMany(db.Booking, {
@@ -77,5 +78,16 @@ db.Review.belongsTo(db.Trip, {
 // Por ejemplo:
 // Trip.hasMany(Booking);
 // Booking.belongsTo(Trip);
+
+// Definir las asociaciones para Payment
+db.Payment.belongsTo(db.Booking, {
+  foreignKey: 'booking_id',
+  targetKey: 'id'
+});
+
+db.Booking.hasMany(db.Payment, {
+  foreignKey: 'booking_id',
+  sourceKey: 'id'
+});
 
 module.exports = db;

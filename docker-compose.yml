@@ -41,10 +41,5 @@ services:
       postgres:
         condition: service_healthy
 
-  frontend:
-    build: ./frontend
-    environment:
-      - VITE_STRIPE_PUBLIC_KEY=${VITE_STRIPE_PUBLIC_KEY}
-
 volumes:
   postgres_data:

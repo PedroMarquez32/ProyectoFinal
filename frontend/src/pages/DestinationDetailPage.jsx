@@ -4,7 +4,6 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FavoriteButton from '../components/FavoriteButton';
 import ReviewSection from '../components/ReviewSection';
-import PaymentModal from '../components/PaymentModal';
 
 const DestinationDetailPage = () => {
   const { id } = useParams();
@@ -21,7 +20,6 @@ const DestinationDetailPage = () => {
   const [bookingStatus, setBookingStatus] = useState(null);
   const [user, setUser] = useState(null);
   const [isFormDisabled, setIsFormDisabled] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     fetchUserData();
@@ -58,6 +56,7 @@ const DestinationDetailPage = () => {
     }
   }, [bookingForm, id, user]);
 
+  // En el useEffect donde se verifica el estado de la reserva
   useEffect(() => {
     const checkBookingStatus = async () => {
       try {
@@ -68,6 +67,9 @@ const DestinationDetailPage = () => {
         if (response.ok) {
           const data = await response.json();
           setBookingStatus(data.status);
+          if (data.id) {
+            setCurrentBooking({ id: data.id });
+          }
           
           // No limpiar el formulario si el estado es PENDING
           if (data.status === 'CANCELLED') {
@@ -83,12 +85,14 @@ const DestinationDetailPage = () => {
         console.error('Error checking booking status:', error);
       }
     };
-
+  
     if (destination && user) {
       checkBookingStatus();
     }
   }, [destination, id, user]);
-
+  
+  // Añadir el estado para currentBooking
+  const [currentBooking, setCurrentBooking] = useState(null);
   useEffect(() => {
     return () => {
       if (bookingStatus === 'CANCELLED' && user) {
@@ -189,12 +193,12 @@ const DestinationDetailPage = () => {
         credentials: 'include',
         body: JSON.stringify({
           trip_id: destination.id,
-          departure_date: bookingForm.startDate,    // Cambiado de start_date a departure_date
-          return_date: bookingForm.endDate,         // Cambiado de end_date a return_date
+          departure_date: bookingForm.startDate,
+          return_date: bookingForm.endDate,
           room_type: bookingForm.roomType,
           number_of_participants: parseInt(bookingForm.guests),
           total_price: parseFloat(calculateTotal()),
-          special_requests: '' // Campo opcional
+          special_requests: ''
         })
       });
 
@@ -202,8 +206,9 @@ const DestinationDetailPage = () => {
       
       if (response.ok) {
         setBookingStatus('PENDING');
+        setCurrentBooking({ id: data.id });
         localStorage.setItem(`bookingForm_${id}_${user.id}`, JSON.stringify(bookingForm));
-        alert('Reserva realizada con éxito. Estado: Pendiente de aprobación');
+        alert('¡Reserva realizada con éxito! Estado: Pendiente de aprobación');
       } else {
         throw new Error(data.message || 'Error al realizar la reserva');
       }
@@ -214,39 +219,7 @@ const DestinationDetailPage = () => {
   };
 
   const renderBookingButton = () => {
-    const renderPaymentButton = () => (
-      <button
-        onClick={() => setShowPaymentModal(true)}
-        className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium mt-2"
-      >
-        Realizar Pago Online
-      </button>
-    );
-
     switch (bookingStatus) {
-      case 'PENDING':
-        return (
-          <div className="space-y-2">
-            <button
-              disabled
-              className="w-full bg-yellow-500 text-white py-3 rounded-lg font-medium cursor-not-allowed"
-            >
-              Reserva Pendiente
-            </button>
-            {renderPaymentButton()}
-            {showPaymentModal && (
-              <PaymentModal
-                bookingId={currentBooking?.id}
-                onSuccess={() => {
-                  setBookingStatus('CONFIRMED');
-                  setShowPaymentModal(false);
-                  alert('¡Pago realizado con éxito!');
-                }}
-                onClose={() => setShowPaymentModal(false)}
-              />
-            )}
-          </div>
-        );
       case 'CONFIRMED':
         return (
           <button
@@ -254,6 +227,15 @@ const DestinationDetailPage = () => {
             className="w-full bg-green-500 text-white py-3 rounded-lg font-medium cursor-not-allowed"
           >
             Reserva Confirmada
+          </button>
+        );
+      case 'PENDING':
+        return (
+          <button
+            disabled
+            className="w-full bg-yellow-500 text-white py-3 rounded-lg font-medium cursor-not-allowed"
+          >
+            Reserva Pendiente
           </button>
         );
       case 'CANCELLED':
@@ -512,15 +494,17 @@ const DestinationDetailPage = () => {
 
                 {bookingForm.startDate && bookingForm.endDate && (
                   <div className="border-t pt-6 mt-6">
-                    <div className="flex justify-between mb-2">
-                      <span className="text-[#3a3a3c]">Duración del viaje</span>
-                      <span className="font-medium text-[#3a3a3c]">
-                        {calculateNights(bookingForm.startDate, bookingForm.endDate)} noches
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold mt-4">
-                      <span className="text-[#3a3a3c]">Precio Total</span>
-                      <span className="text-[#4DA8DA]">{calculateTotal()}€</span>
+                    <div className="space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-[#3a3a3c]">Duración del viaje</span>
+                        <span className="font-medium text-[#3a3a3c]">
+                          {calculateNights(bookingForm.startDate, bookingForm.endDate)} noches
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-lg font-bold mt-4">
+                        <span className="text-[#3a3a3c]">Precio Total</span>
+                        <span className="text-[#4DA8DA]">{calculateTotal()}€</span>
+                      </div>
                     </div>
                   </div>
                 )}

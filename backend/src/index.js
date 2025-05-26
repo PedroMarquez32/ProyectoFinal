@@ -9,6 +9,7 @@ const tripsRoutes = require('./routes/trips');
 const customTripsRoutes = require('./routes/customTrips');
 const path = require('path');
 const fs = require('fs');
+const financesRoutes = require('./routes/finances');
 
 // Asegurar que el directorio de uploads existe
 const uploadDir = path.join(__dirname, '../public/uploads');
@@ -40,6 +41,7 @@ app.use('/api/favorites', require('./routes/favorites'));
 app.use('/api/users', require('./routes/users'));
 const reviewsRouter = require('./routes/reviews');
 app.use('/api/reviews', reviewsRouter);
+app.use('/api/finances', financesRoutes);
 
 // Error handling
 app.use(errorHandler);

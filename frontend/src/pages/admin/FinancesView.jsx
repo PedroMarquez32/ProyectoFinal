@@ -63,6 +63,25 @@ const FinancesView = () => {
     }
   };
 
+  const handleStatusChange = async (transactionId, newStatus) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/finances/transactions/${transactionId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (!response.ok) throw new Error('Error updating payment status');
+      await fetchTransactions();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al actualizar el estado del pago');
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <AdminSidebar user={user} />
@@ -160,18 +179,29 @@ const FinancesView = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {new Date(transaction.date).toLocaleDateString('es-ES')}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {transaction.status === 'completed' && !transaction.refunded && (
+                        <td className="px-6 py-4">
+                          <div className="space-x-2">
                             <button
-                              onClick={() => handleRefund(transaction.id)}
-                              className="text-red-600 hover:text-red-800 font-medium"
+                              onClick={() => handleStatusChange(transaction.id, 'COMPLETED')}
+                              className={`px-3 py-1 rounded text-sm font-medium ${
+                                transaction.status === 'COMPLETED'
+                                  ? 'bg-green-500 text-white'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-green-500 hover:text-white'
+                              }`}
                             >
-                              Refund
+                              Aprobar
                             </button>
-                          )}
-                          {transaction.refunded && (
-                            <span className="text-gray-500">Refunded</span>
-                          )}
+                            <button
+                              onClick={() => handleStatusChange(transaction.id, 'CANCELLED')}
+                              className={`px-3 py-1 rounded text-sm font-medium ${
+                                transaction.status === 'CANCELLED'
+                                  ? 'bg-red-500 text-white'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-red-500 hover:text-white'
+                              }`}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

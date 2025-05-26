@@ -1,45 +1,58 @@
 const express = require('express');
 const router = express.Router();
 const { auth, isAdmin } = require('../middleware/auth');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { Payment, Booking, User, Trip } = require('../models');
+const { Op } = require('sequelize');
 
 // Get all transactions
 router.get('/transactions', [auth, isAdmin], async (req, res) => {
   try {
     const { range } = req.query;
-    let startDate;
+    let startDate = new Date();
     
     switch(range) {
       case 'last30':
-        startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        startDate.setDate(startDate.getDate() - 30);
         break;
       case 'last90':
-        startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+        startDate.setDate(startDate.getDate() - 90);
         break;
       case 'year':
         startDate = new Date(new Date().getFullYear(), 0, 1);
         break;
       default:
-        startDate = new Date(0); // All time
+        startDate = new Date(0);
     }
 
-    const transactions = await stripe.charges.list({
-      created: { gte: Math.floor(startDate.getTime() / 1000) },
-      limit: 100
+    const payments = await Payment.findAll({
+      where: {
+        createdAt: {
+          [Op.gte]: startDate
+        }
+      },
+      include: [{
+        model: Booking,
+        include: [
+          { model: User, attributes: ['username', 'email'] },
+          { model: Trip, attributes: ['title'] }
+        ]
+      }],
+      order: [['createdAt', 'DESC']]
     });
 
-    const formattedTransactions = transactions.data.map(t => ({
-      id: t.id,
-      amount: t.amount / 100,
-      customer_name: t.billing_details.name,
-      customer_email: t.billing_details.email,
-      status: t.status,
-      date: new Date(t.created * 1000),
-      refunded: t.refunded
+    const formattedTransactions = payments.map(payment => ({
+      id: payment.id,
+      amount: parseFloat(payment.amount),
+      status: payment.status.toLowerCase(),
+      customer_name: payment.Booking?.User?.username || 'Usuario no disponible',
+      customer_email: payment.Booking?.User?.email || 'Email no disponible',
+      trip_title: payment.Booking?.Trip?.title || 'Viaje no disponible',
+      date: payment.createdAt,
+      booking_id: payment.booking_id
     }));
 
     const totalRevenue = formattedTransactions
-      .filter(t => t.status === 'succeeded' && !t.refunded)
+      .filter(t => t.status === 'completed')
       .reduce((sum, t) => sum + t.amount, 0);
 
     res.json({
@@ -47,22 +60,43 @@ router.get('/transactions', [auth, isAdmin], async (req, res) => {
       totalRevenue
     });
   } catch (error) {
-    console.error('Error fetching transactions:', error);
+    console.error('Error:', error);
     res.status(500).json({ message: 'Error al obtener las transacciones' });
   }
 });
 
-// Process refund
-router.post('/refund/:transactionId', [auth, isAdmin], async (req, res) => {
+// Update payment status
+router.patch('/transactions/:id/status', [auth, isAdmin], async (req, res) => {
   try {
-    const refund = await stripe.refunds.create({
-      charge: req.params.transactionId
+    const { status } = req.body;
+    const payment = await Payment.findByPk(req.params.id);
+
+    if (!payment) {
+      return res.status(404).json({ message: 'Pago no encontrado' });
+    }
+
+    await payment.update({ 
+      status,
+      payment_date: status === 'COMPLETED' ? new Date() : null
     });
 
-    res.json(refund);
+    // Si el pago se completa, actualizar también el estado de la reserva
+    if (status === 'COMPLETED') {
+      await Booking.update(
+        { status: 'CONFIRMED' },
+        { where: { id: payment.booking_id } }
+      );
+    } else if (status === 'CANCELLED') {
+      await Booking.update(
+        { status: 'CANCELLED' },
+        { where: { id: payment.booking_id } }
+      );
+    }
+
+    res.json(payment);
   } catch (error) {
-    console.error('Error processing refund:', error);
-    res.status(500).json({ message: 'Error al procesar el reembolso' });
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Error al actualizar el estado del pago' });
   }
 });
 

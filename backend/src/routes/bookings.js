@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const { Booking, Trip, User } = require('../models');
+const { Booking, Payment, Trip, User } = require('../models');
 const { auth, isAdmin } = require('../middleware/auth');
 
 // Get booking status
@@ -19,7 +19,10 @@ router.get('/status/:tripId', auth, async (req, res) => {
       return res.json({ status: null });
     }
 
-    res.json({ status: booking.status });
+    res.json({ 
+      status: booking.status,
+      id: booking.id  // Añadimos el ID de la reserva
+    });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ message: 'Error del servidor' });
@@ -30,7 +33,6 @@ router.get('/status/:tripId', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const trip = await Trip.findByPk(req.body.trip_id);
-    
     if (!trip) {
       return res.status(404).json({ message: 'Viaje no encontrado' });
     }
@@ -38,13 +40,20 @@ router.post('/', auth, async (req, res) => {
     const booking = await Booking.create({
       user_id: req.user.id,
       trip_id: req.body.trip_id,
-      departure_date: req.body.departure_date, // Nuevo campo
-      return_date: req.body.return_date,     // Nuevo campo
+      departure_date: req.body.departure_date,
+      return_date: req.body.return_date,
       room_type: req.body.room_type,
       number_of_participants: req.body.number_of_participants,
       total_price: req.body.total_price,
-      status: 'PENDING',
+      status: 'PENDING', // Cambiado a PENDING
       special_requests: req.body.special_requests || ''
+    });
+
+    // Crear el pago pendiente
+    await Payment.create({
+      booking_id: booking.id,
+      amount: req.body.total_price,
+      status: 'PENDING'
     });
 
     res.status(201).json(booking);
