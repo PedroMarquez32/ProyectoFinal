@@ -1,9 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Pie, Line } from 'react-chartjs-2';
 import AdminSidebar from '../components/AdminSidebar';
+import { motion } from 'framer-motion';  
+import PageTransition from '../components/PageTransition';
+
+// Registrar los componentes necesarios de Chart.js
+ChartJS.register(
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const AdminDashboard = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState('last 30 days');
+  const [stats, setStats] = useState({
+    totalUsers: 4,
+    activeBookings: 4,
+    activeDestinations: 6 
+  });
   const [user, setUser] = useState(null);
   const [dashboardData, setDashboardData] = useState({
     stats: {
@@ -17,6 +37,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    fetchStats();
     fetchDashboardData();
     fetchUserData();
   }, []);
@@ -73,119 +94,211 @@ const AdminDashboard = () => {
     }
   };
 
+  // Modificar fetchStats para que funcione correctamente
+  const fetchStats = async () => {
+    try {
+      const [usersResponse, bookingsResponse] = await Promise.all([
+        fetch('http://localhost:5000/api/users/count', {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json'
+          }
+        }),
+        fetch('http://localhost:5000/api/bookings/count', { // Cambiado de stats a count
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json'
+          }
+        })
+      ]);
+
+      if (!usersResponse.ok || !bookingsResponse.ok) {
+        throw new Error('Error fetching stats');
+      }
+
+      const usersData = await usersResponse.json();
+      const bookingsData = await bookingsResponse.json();
+
+      setStats(prevStats => ({
+        ...prevStats,
+        totalUsers: usersData.count || 0,
+        activeBookings: bookingsData.count || 0
+      }));
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  // Datos para la gráfica de líneas de reservas
+  const bookingsChartData = {
+    labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'],
+    datasets: [
+      {
+        label: 'Reservas',
+        data: [65, 59, 80, 81, 56, 90],
+        fill: false,
+        borderColor: '#4DA8DA',
+        tension: 0.4,
+      },
+    ],
+  };
+
+  const bookingsChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Reservas Mensuales'
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  };
+
+  // Datos para la gráfica circular de destinos populares
+  const popularDestinationsChartData = {
+    labels: ['Tokio', 'París', 'Barcelona', 'Nueva York', 'Roma'],
+    datasets: [
+      {
+        data: [30, 25, 20, 15, 10],
+        backgroundColor: [
+          '#4DA8DA',
+          '#FF6B6B',
+          '#4ECDC4',
+          '#45B7D1',
+          '#96CEB4',
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  // Modificar las opciones de la gráfica circular para hacerla más grande
+  const popularDestinationsChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false, // Esto permite que la gráfica se ajuste al contenedor
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          font: {
+            size: 14 // Tamaño de fuente más grande para las etiquetas
+          }
+        }
+      },
+      title: {
+        display: true,
+        text: 'Destinos Más Populares (%)',
+        font: {
+          size: 18 // Título más grande
+        }
+      }
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5
+      }
+    }
+  };
+
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <AdminSidebar user={user} />
-      
-      {/* Main Content */}
-      <div className="ml-64 flex-1 p-8">
-        <div className="text-black">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-2xl font-bold">Dashboard</h1>
-              <p className="text-gray-500">Welcome back! Here's what's happening today.</p>
+    <PageTransition>
+      <div className="flex h-screen bg-gray-100">
+        <AdminSidebar user={user} />
+        <div className="flex-1 overflow-hidden">
+          <div className="p-8 overflow-y-auto h-full">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-800">Panel de Administración</h1>
+              <p className="text-sm lg:text-base text-gray-600">¡Bienvenido de nuevo! Esto es lo que está pasando hoy.</p>
             </div>
-            <div className="flex items-center gap-4">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="px-4 py-2 border rounded-lg"
-              />
-              <button className="p-2 rounded-full bg-gray-100">
-                <span className="material-icons">notifications</span>
-              </button>
-            </div>
-          </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-3 gap-6 mb-8">
-            {Object.entries(dashboardData.stats).map(([key, value]) => (
-              <div key={key} className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-gray-500 text-sm">{key}</p>
-                    <h3 className="text-2xl font-bold mt-1">{value}</h3>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Bookings Overview & Popular Destinations */}
-          <div className="grid grid-cols-2 gap-6 mb-8">
-            {/* Bookings Overview Chart */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-semibold">Bookings Overview</h3>
-                <select 
-                  value={selectedPeriod}
-                  onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="border rounded px-2 py-1"
+            {/* Stats Cards */}
+            <motion.div 
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {[
+                { label: "Usuarios Totales", value: stats.totalUsers },
+                { label: "Reservas Activas", value: stats.activeBookings },
+                { label: "Destinos Activos", value: stats.activeDestinations }
+              ].map((stat, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-white p-3 lg:p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                  variants={itemVariants}
                 >
-                  <option>Last 30 days</option>
-                  <option>Last 90 days</option>
-                  <option>Last year</option>
-                </select>
-              </div>
-              {/* Chart placeholder */}
-              <div className="h-64 bg-gray-50 rounded flex items-center justify-center">
-                Bookings Chart
-              </div>
-            </div>
-
-            {/* Popular Destinations */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="font-semibold mb-6">Popular Destinations</h3>
-              <div className="space-y-4">
-                {dashboardData.popularDestinations.map((destination) => (
-                  <div key={destination.id} className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium">{destination.destination}</h4>
-                      <p className="text-sm text-gray-500">{destination.bookings} bookings</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">{destination.revenue}</p>
-                      <p className="text-sm text-gray-500">⭐ {destination.rating}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-semibold">Recent Activity</h3>
-              <button className="text-[#4DA8DA]">View all</button>
-            </div>
-            <div className="space-y-4">
-              {dashboardData.recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-4">
-                  <div className={`p-2 rounded-full ${
-                    activity.type === 'user' ? 'bg-blue-100' :
-                    activity.type === 'booking' ? 'bg-green-100' :
-                    activity.type === 'review' ? 'bg-yellow-100' : 'bg-purple-100'
-                  }`}>
-                    <span className="material-icons text-lg">
-                      {activity.type === 'user' ? 'person' :
-                       activity.type === 'booking' ? 'confirmation_number' :
-                       activity.type === 'review' ? 'star' : 'notifications'}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium">{activity.title}</h4>
-                    <p className="text-sm text-gray-500">{activity.description}</p>
-                  </div>
-                  <span className="text-sm text-gray-400">{activity.time}</span>
-                </div>
+                  <p className="text-gray-500 text-sm lg:text-base font-medium">{stat.label}</p>
+                  <h3 className="text-xl lg:text-2xl font-bold mt-1 text-gray-800">{stat.value}</h3>
+                </motion.div>
               ))}
+            </motion.div>
+
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+              {/* Monthly Bookings Chart */}
+              <motion.div 
+                className="bg-white p-3 lg:p-4 rounded-lg shadow-sm"
+                variants={itemVariants}
+              >
+                <h3 className="font-semibold text-base lg:text-lg mb-3 lg:mb-4 text-gray-800">Reservas Mensuales</h3>
+                <div className="h-[250px] lg:h-[350px] w-full">
+                  <Line 
+                    data={bookingsChartData} 
+                    options={{
+                      ...bookingsChartOptions,
+                      maintainAspectRatio: false,
+                      responsive: true
+                    }} 
+                  />
+                </div>
+              </motion.div>
+
+              {/* Popular Destinations Chart */}
+              <motion.div 
+                className="bg-white p-3 lg:p-4 rounded-lg shadow-sm"
+                variants={itemVariants}
+              >
+                <h3 className="font-semibold text-base lg:text-lg mb-3 lg:mb-4 text-gray-800">Destinos Populares</h3>
+                <div className="h-[250px] lg:h-[350px] w-full">
+                  <Pie 
+                    data={popularDestinationsChartData} 
+                    options={{
+                      ...popularDestinationsChartOptions,
+                      maintainAspectRatio: false,
+                      responsive: true
+                    }} 
+                  />
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 

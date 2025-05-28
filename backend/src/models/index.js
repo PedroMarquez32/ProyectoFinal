@@ -74,17 +74,22 @@ db.Review.belongsTo(db.Trip, {
   foreignKey: 'trip_id'
 });
 
-// Define las relaciones entre modelos aquí si las hay
-// Por ejemplo:
-// Trip.hasMany(Booking);
-// Booking.belongsTo(Trip);
-
 // Definir las asociaciones para Payment
+db.Payment.belongsTo(db.User, {
+  foreignKey: 'user_id',
+  targetKey: 'id'
+});
+
+db.User.hasMany(db.Payment, {
+  foreignKey: 'user_id',
+  sourceKey: 'id'
+});
+
+// Relación Payment <-> Booking
 db.Payment.belongsTo(db.Booking, {
   foreignKey: 'booking_id',
   targetKey: 'id'
 });
-
 db.Booking.hasMany(db.Payment, {
   foreignKey: 'booking_id',
   sourceKey: 'id'

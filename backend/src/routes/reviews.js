@@ -15,10 +15,19 @@ router.post('/', auth, async (req, res) => {
       trip_id,
       rating,
       comment,
-      is_approved: false
+      is_approved: true // Cambiar a true por defecto
     });
 
-    res.status(201).json(review);
+    // Incluir la información del usuario al devolver la review
+    const reviewWithUser = await Review.findOne({
+      where: { id: review.id },
+      include: [{
+        model: require('../models').User,
+        attributes: ['username']
+      }]
+    });
+
+    res.status(201).json(reviewWithUser);
   } catch (error) {
     console.error('Error creating review:', error);
     res.status(500).json({ message: 'Error creating review' });

@@ -4,6 +4,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FavoriteButton from '../components/FavoriteButton';
 import ReviewSection from '../components/ReviewSection';
+import PageTransition from '../components/PageTransition';
+import ZoomPageTransition from '../components/ZoomPageTransition';
 
 const DestinationDetailPage = () => {
   const { id } = useParams();
@@ -20,11 +22,78 @@ const DestinationDetailPage = () => {
   const [bookingStatus, setBookingStatus] = useState(null);
   const [user, setUser] = useState(null);
   const [isFormDisabled, setIsFormDisabled] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isNewBooking, setIsNewBooking] = useState(false);
+
+  // Modificar el checkBookingStatus
+  const checkBookingStatus = async () => {
+    if (!user || !id) return;
+    
+    try {
+      const response = await fetch(`http://localhost:5000/api/bookings/status/${id}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) throw new Error('Error checking booking status');
+      
+      const data = await response.json();
+      if (data.status !== bookingStatus) {
+        setBookingStatus(data.status);
+        
+        if (data.booking) {
+          setCurrentBooking({
+            id: data.booking.id,
+            startDate: new Date(data.booking.departure_date).toISOString().split('T')[0],
+            endDate: new Date(data.booking.return_date).toISOString().split('T')[0],
+            roomType: data.booking.room_type,
+            guests: data.booking.number_of_participants.toString(),
+            total_price: data.booking.total_price
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking booking status:', error);
+    }
+  };
+
+  // Efectos separados y organizados
+  useEffect(() => {
+    const init = async () => {
+      await fetchUserData();
+      await fetchDestination();
+    };
+    init();
+  }, []);
+
+  // Reemplazar el useEffect que maneja el checkBookingStatus
+  useEffect(() => {
+    if (user && id) {
+      // Hacer una sola comprobación inicial
+      checkBookingStatus();
+      
+      // Cargar datos guardados del localStorage si no hay una reserva activa
+      const savedForm = localStorage.getItem(`bookingForm_${id}_${user.id}`);
+      if (savedForm && !bookingStatus) {
+        const parsedForm = JSON.parse(savedForm);
+        setBookingForm(parsedForm);
+      }
+
+      // Establecer un intervalo más largo (por ejemplo, cada 30 segundos) 
+      // solo si la reserva está pendiente
+      const interval = setInterval(() => {
+        if (bookingStatus === 'PENDING') {
+          checkBookingStatus();
+        }
+      }, 30000); // 30 segundos
+
+      return () => clearInterval(interval);
+    }
+  }, [user, id, bookingStatus]);
 
   useEffect(() => {
-    fetchUserData();
-    fetchDestination();
-  }, [id]);
+    setIsFormDisabled(bookingStatus !== null && bookingStatus !== 'CANCELLED');
+  }, [bookingStatus]);
 
   const fetchUserData = async () => {
     try {
@@ -41,70 +110,6 @@ const DestinationDetailPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      const savedForm = localStorage.getItem(`bookingForm_${id}_${user.id}`);
-      if (savedForm) {
-        setBookingForm(JSON.parse(savedForm));
-      }
-    }
-  }, [id, user]);
-
-  useEffect(() => {
-    if (user && (bookingForm.startDate || bookingForm.endDate || bookingForm.roomType || bookingForm.guests)) {
-      localStorage.setItem(`bookingForm_${id}_${user.id}`, JSON.stringify(bookingForm));
-    }
-  }, [bookingForm, id, user]);
-
-  // En el useEffect donde se verifica el estado de la reserva
-  useEffect(() => {
-    const checkBookingStatus = async () => {
-      try {
-        const response = await fetch(`http://localhost:5000/api/bookings/status/${id}`, {
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setBookingStatus(data.status);
-          if (data.id) {
-            setCurrentBooking({ id: data.id });
-          }
-          
-          // No limpiar el formulario si el estado es PENDING
-          if (data.status === 'CANCELLED') {
-            setBookingForm({
-              startDate: '',
-              endDate: '',
-              roomType: '',
-              guests: ''
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error checking booking status:', error);
-      }
-    };
-  
-    if (destination && user) {
-      checkBookingStatus();
-    }
-  }, [destination, id, user]);
-  
-  // Añadir el estado para currentBooking
-  const [currentBooking, setCurrentBooking] = useState(null);
-  useEffect(() => {
-    return () => {
-      if (bookingStatus === 'CANCELLED' && user) {
-        localStorage.removeItem(`bookingForm_${id}_${user.id}`);
-      }
-    };
-  }, [id, bookingStatus, user]);
-
-  useEffect(() => {
-    setIsFormDisabled(bookingStatus !== null);
-  }, [bookingStatus]);
-
   const fetchDestination = async () => {
     try {
       const response = await fetch(`http://localhost:5000/api/trips/${id}`, {
@@ -117,9 +122,10 @@ const DestinationDetailPage = () => {
 
       const data = await response.json();
       
-      // Asegurarse de que highlights e itinerary están formateados correctamente
+      // Asegurarse de que la URL de la imagen es completa
       const formattedData = {
         ...data,
+        image_url: data.image || 'https://via.placeholder.com/1200x800?text=No+Image+Available',
         overview: data.overview || data.description || '',
         highlights: Array.isArray(data.highlights) 
           ? data.highlights 
@@ -185,30 +191,41 @@ const DestinationDetailPage = () => {
     }
 
     try {
+      const bookingData = {
+        trip_id: destination.id,
+        departure_date: bookingForm.startDate,
+        return_date: bookingForm.endDate,
+        room_type: bookingForm.roomType,
+        number_of_participants: parseInt(bookingForm.guests),
+        total_price: parseFloat(calculateTotal()),
+        special_requests: ''
+      };
+
       const response = await fetch('http://localhost:5000/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          trip_id: destination.id,
-          departure_date: bookingForm.startDate,
-          return_date: bookingForm.endDate,
-          room_type: bookingForm.roomType,
-          number_of_participants: parseInt(bookingForm.guests),
-          total_price: parseFloat(calculateTotal()),
-          special_requests: ''
-        })
+        body: JSON.stringify(bookingData)
       });
 
       const data = await response.json();
       
       if (response.ok) {
+        // Actualizar inmediatamente el estado y la información
         setBookingStatus('PENDING');
-        setCurrentBooking({ id: data.id });
+        setCurrentBooking({ 
+          id: data.id,
+          ...bookingData
+        });
         localStorage.setItem(`bookingForm_${id}_${user.id}`, JSON.stringify(bookingForm));
+        
+        // Forzar una actualización inmediata
+        checkBookingStatus();
+        
         alert('¡Reserva realizada con éxito! Estado: Pendiente de aprobación');
+        setIsNewBooking(false);
       } else {
         throw new Error(data.message || 'Error al realizar la reserva');
       }
@@ -218,13 +235,44 @@ const DestinationDetailPage = () => {
     }
   };
 
+
+  // Actualizar el handleNewBooking
+  const handleNewBooking = () => {
+    setIsProcessing(true);
+    setBookingStatus(null);
+    setCurrentBooking(null);
+    setBookingForm({
+      startDate: '',
+      endDate: '',
+      roomType: '',
+      guests: ''
+    });
+    if (user) {
+      localStorage.removeItem(`bookingForm_${id}_${user.id}`);
+    }
+    setIsFormDisabled(false);
+    setIsProcessing(false);
+    setIsNewBooking(true);
+  };
+
   const renderBookingButton = () => {
+    if (isNewBooking) {
+      return (
+        <button
+          type="submit"
+          disabled={isProcessing}
+          className="w-full bg-[#4DA8DA] text-white py-2 rounded-lg hover:bg-[#3a8bb9] transition-colors font-medium"
+        >
+          {isProcessing ? 'Procesando...' : 'Reservar Ahora'}
+        </button>
+      );
+    }
     switch (bookingStatus) {
       case 'CONFIRMED':
         return (
           <button
             disabled
-            className="w-full bg-green-500 text-white py-3 rounded-lg font-medium cursor-not-allowed"
+            className="w-full bg-green-500 text-white py-2 rounded-lg font-medium cursor-not-allowed"
           >
             Reserva Confirmada
           </button>
@@ -233,32 +281,43 @@ const DestinationDetailPage = () => {
         return (
           <button
             disabled
-            className="w-full bg-yellow-500 text-white py-3 rounded-lg font-medium cursor-not-allowed"
+            className="w-full bg-yellow-500 text-white py-2 rounded-lg font-medium cursor-not-allowed"
           >
             Reserva Pendiente
           </button>
         );
       case 'CANCELLED':
         return (
-          <button
-            disabled
-            className="w-full bg-red-500 text-white py-3 rounded-lg font-medium cursor-not-allowed"
-          >
-            Reserva Cancelada
-          </button>
+          <div className="space-y-2">
+            <button
+              disabled
+              className="w-full bg-red-500 text-white py-2 rounded-lg font-medium cursor-not-allowed"
+            >
+              Reserva Cancelada
+            </button>
+            <button
+              onClick={handleNewBooking}
+              disabled={isProcessing}
+              className="w-full bg-[#4DA8DA] text-white py-2 rounded-lg hover:bg-[#3a8bb9] transition-colors font-medium"
+            >
+              {isProcessing ? 'Procesando...' : 'Realizar Nueva Reserva'}
+            </button>
+          </div>
         );
       default:
         return (
           <button
             type="submit"
-            className="w-full bg-[#4DA8DA] text-white py-3 rounded-lg hover:bg-[#3a8bb9] transition-colors font-medium"
+            disabled={isProcessing}
+            className="w-full bg-[#4DA8DA] text-white py-2 rounded-lg hover:bg-[#3a8bb9] transition-colors font-medium"
           >
-            Reservar Ahora
+            {isProcessing ? 'Procesando...' : 'Reservar Ahora'}
           </button>
         );
     }
   };
 
+  // Modificar renderFormInputs para mostrar los datos correctamente
   const renderFormInputs = () => {
     if (!user) {
       return (
@@ -369,73 +428,63 @@ const DestinationDetailPage = () => {
   const renderDestinationDetails = () => (
     <div className="lg:col-span-2">
       {/* Descripción General */}
-      <div className="bg-white rounded-lg p-8 shadow-lg mb-8">
-        <h2 className="text-2xl font-bold mb-4 text-[#3a3a3c]">Descripción General</h2>
-        <p className="text-gray-700 mb-6">{destination.overview || destination.description}</p>
-        <div className="grid grid-cols-2 gap-4">
+      <div className="bg-white rounded-2xl p-8 shadow-md mb-6 border border-[#f3e6d0]">
+        <h2 className="text-2xl font-bold mb-4 text-[#4DA8DA] text-left">Descripción General</h2>
+        <p className="text-gray-700 text-lg leading-relaxed mb-6">{destination.overview || destination.description}</p>
+        <div className="grid grid-cols-2 gap-6">
           <div>
-            <p className="text-gray-600">Duración:</p>
-            <p className="text-gray-900 font-medium">{destination.duration} días</p>
+            <p className="text-gray-500">Duración:</p>
+            <p className="text-gray-900 font-semibold">{destination.duration} días</p>
           </div>
           <div>
-            <p className="text-gray-600">Valoración:</p>
-            <p className="text-gray-900 font-medium">{destination.rating}/5 ⭐</p>
+            <p className="text-gray-500">Valoración:</p>
+            <p className="text-gray-900 font-semibold">{destination.rating}/5 ⭐</p>
           </div>
           <div>
-            <p className="text-gray-600">Precio desde:</p>
-            <p className="text-gray-900 font-medium">{destination.price}€</p>
+            <p className="text-gray-500">Precio desde:</p>
+            <p className="text-gray-900 font-semibold">{destination.price}€</p>
           </div>
           <div>
-            <p className="text-gray-600">Máximo participantes:</p>
-            <p className="text-gray-900 font-medium">{destination.max_participants} personas</p>
+            <p className="text-gray-500">Máximo participantes:</p>
+            <p className="text-gray-900 font-semibold">{destination.max_participants} personas</p>
           </div>
         </div>
       </div>
 
       {/* Destacados del Viaje */}
-      <div className="bg-white rounded-lg p-8 shadow-lg mb-8">
-        <h2 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Destacados del Viaje</h2>
+      <div className="bg-white rounded-2xl p-8 shadow-md mb-6 border border-[#f3e6d0]">
+        <h2 className="text-2xl font-bold mb-6 text-[#4DA8DA]">Destacados del Viaje</h2>
         <div className="grid grid-cols-2 gap-6">
-          {Array.isArray(destination.highlights) && destination.highlights.length > 0 ? (
-            destination.highlights.map((highlight, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-[#4DA8DA] rounded-full flex items-center justify-center text-white shrink-0">
-                  ✓
-                </div>
-                <span className="text-gray-700 leading-tight">{highlight}</span>
+          {destination.highlights?.map((highlight, index) => (
+            <div key={index} className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-[#4DA8DA] rounded-full flex items-center justify-center text-white shrink-0 shadow">
+                ✓
               </div>
-            ))
-          ) : (
-            <p className="text-gray-700">No hay destacados disponibles.</p>
-          )}
+              <span className="text-gray-700">{highlight}</span>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Itinerario */}
-      <div className="bg-white rounded-lg p-8 shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Itinerario</h2>
-        <div className="space-y-6">
-          {destination.itinerary && Array.isArray(destination.itinerary) && destination.itinerary.length > 0 ? (
-            destination.itinerary
-              .sort((a, b) => a.day - b.day)
-              .map((day) => (
-                <div key={day.day} className="border-b pb-6 last:border-0">
-                  <h3 className="text-xl font-semibold mb-3 text-[#3a3a3c]">
-                    Día {day.day}: {day.title}
-                  </h3>
-                  <ul className="space-y-2">
-                    {day.activities?.map((activity, index) => (
-                      <li key={index} className="flex items-start gap-3 text-gray-700">
-                        <span className="text-[#4DA8DA] mt-1">•</span>
-                        {activity}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))
-          ) : (
-            <p className="text-gray-700">No hay itinerario disponible.</p>
-          )}
+      <div className="bg-white rounded-2xl p-8 shadow-md border border-[#f3e6d0]">
+        <h2 className="text-2xl font-bold mb-6 text-[#4DA8DA]">Itinerario</h2>
+        <div className="grid gap-6">
+          {destination.itinerary?.map((day) => (
+            <div key={day.day} className="bg-[#FDF6ED] rounded-xl p-6 shadow flex flex-col gap-2 border-l-4 border-[#4DA8DA]">
+              <h3 className="text-xl font-semibold text-[#4DA8DA] mb-2">
+                Día {day.day}: <span className="text-gray-800">{day.title}</span>
+              </h3>
+              <ul className="space-y-2 pl-2">
+                {day.activities?.map((activity, index) => (
+                  <li key={index} className="flex items-start gap-2 text-gray-700">
+                    <span className="text-[#4DA8DA] mt-1">•</span>
+                    {activity}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -455,68 +504,71 @@ const DestinationDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f6e7d7]">
-      <Navbar />
-      
-      <div className="relative h-[400px]">
-        <img
-          src={destination.image}
-          alt={destination.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black bg-opacity-40">
-          <div className="container mx-auto px-4 h-full flex items-center justify-between">
-            <div className="text-white">
-              <h1 className="text-5xl font-bold mb-4">{destination.title}</h1>
-              <div className="flex items-center gap-6 text-lg">
-                <span>⏱ {destination.duration}</span>
-                <span>⭐ {destination.rating}</span>
-                <span>💶 Desde {destination.price}€</span>
+    <ZoomPageTransition>
+      <div className="min-h-screen bg-[#FDF6ED]">
+        <Navbar />
+        {destination ? (
+          <>
+            {/* Imagen principal */}
+            <div className="relative h-[40vh] mb-12 overflow-hidden">
+              <img
+                src={destination.image_url}
+                alt={destination.title}
+                className="w-full h-full object-cover"
+              />
+              {/* Capa oscura para el texto */}
+              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-end">
+                <div className="w-full pl-16 pb-10 text-left">
+                  <h1 className="text-4xl font-extrabold text-white drop-shadow mb-1">{destination.title}</h1>
+                  <p className="text-lg text-white">{destination.destination}</p>
+                </div>
               </div>
             </div>
-            <div>
-              <FavoriteButton tripId={destination.id} />
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {renderDestinationDetails()}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg p-6 shadow-lg sticky top-4">
-              <h3 className="text-xl font-bold mb-6 text-[#3a3a3c]">
-                {isFormDisabled ? 'Detalles de la Reserva' : 'Reservar este Viaje'}
-              </h3>
-              <form onSubmit={handleBookingSubmit} className="space-y-6">
-                {renderFormInputs()}
+            <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Columna principal */}
+              <div className="lg:col-span-2 space-y-8">
+                {renderDestinationDetails()}
+              </div>
 
-                {bookingForm.startDate && bookingForm.endDate && (
-                  <div className="border-t pt-6 mt-6">
-                    <div className="space-y-4">
-                      <div className="flex justify-between">
-                        <span className="text-[#3a3a3c]">Duración del viaje</span>
-                        <span className="font-medium text-[#3a3a3c]">
-                          {calculateNights(bookingForm.startDate, bookingForm.endDate)} noches
-                        </span>
+              {/* Formulario de Reserva */}
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-2xl shadow-md p-4 border border-[#f3e6d0] sticky top-24 max-h-[90vh] flex flex-col justify-between">
+                  <h2 className="text-xl font-bold mb-2 text-[#4DA8DA] text-left">Detalles de la Reserva</h2>
+                  <form onSubmit={handleBookingSubmit} className="flex flex-col space-y-2 flex-grow">
+                    {renderFormInputs()}
+                    {bookingForm.startDate && bookingForm.endDate && (
+                      <div className="border-t pt-2 mt-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Duración del viaje</span>
+                          <span className="font-medium text-gray-800">
+                            {calculateNights(bookingForm.startDate, bookingForm.endDate)} noches
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-lg font-bold mt-1">
+                          <span className="text-gray-800">Precio Total</span>
+                          <span className="text-[#4DA8DA]">{calculateTotal()}€</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-lg font-bold mt-4">
-                        <span className="text-[#3a3a3c]">Precio Total</span>
-                        <span className="text-[#4DA8DA]">{calculateTotal()}€</span>
-                      </div>
+                    )}
+                    <div className="pt-2 flex flex-col gap-2">
+                      {renderBookingButton()}
                     </div>
-                  </div>
-                )}
-
-                {renderBookingButton()}
-              </form>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="min-h-screen bg-[#f6e7d7] flex items-center justify-center">
+            <div className="text-2xl text-gray-600">
+              Cargando destino...
             </div>
           </div>
-        </div>
+        )}
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </ZoomPageTransition>
   );
 };
 

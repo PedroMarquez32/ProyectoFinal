@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from '../../components/AdminSidebar';
+import PageTransition from '../../components/PageTransition';
+import { buttonStyles } from '../../styles/buttons';
+import Spinner from '../../components/Spinner';
 
 const BookingsView = () => {
   const [bookings, setBookings] = useState([]);
@@ -12,6 +15,8 @@ const BookingsView = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCustomTrip, setEditingCustomTrip] = useState(null);
   const [showCustomTripModal, setShowCustomTripModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('ALL');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -157,8 +162,8 @@ const BookingsView = () => {
         },
         credentials: 'include',
         body: JSON.stringify({
-          start_date: editingBooking.start_date,
-          end_date: editingBooking.end_date,
+          departure_date: editingBooking.start_date,
+          return_date: editingBooking.end_date,
           room_type: editingBooking.room_type,
           number_of_participants: editingBooking.number_of_participants,
           total_price: editingBooking.total_price,
@@ -168,9 +173,13 @@ const BookingsView = () => {
 
       if (!response.ok) throw new Error('Error updating booking');
 
+      // Forzar actualización inmediata
       await fetchBookings();
       setShowEditModal(false);
       setEditingBooking(null);
+
+      // Emitir evento para actualizar otras vistas
+      window.dispatchEvent(new CustomEvent('booking-updated'));
     } catch (error) {
       console.error('Error:', error);
       alert('Error al actualizar la reserva');
@@ -200,18 +209,51 @@ const BookingsView = () => {
   };
 
   const handleDeleteBooking = async (bookingId) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar esta reserva?')) {
+    if (window.confirm('¿Estás seguro de que quieres eliminar esta reserva? Esta acción no se puede deshacer.')) {
       try {
         const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}`, {
           method: 'DELETE',
           credentials: 'include'
         });
 
-        if (!response.ok) throw new Error('Error deleting booking');
+        if (!response.ok) {
+          throw new Error('Error al eliminar la reserva');
+        }
+
+        // Actualizar la lista de reservas
         await fetchBookings();
+        setShowEditModal(false);
+        setEditingBooking(null);
       } catch (error) {
         console.error('Error:', error);
         alert('Error al eliminar la reserva');
+      }
+    }
+  };
+
+  // Añadir esta función para manejar el borrado de custom trips
+  const handleDeleteCustomTrip = async (tripId) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este viaje personalizado? Esta acción no se puede deshacer.')) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/custom-trips/${tripId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Error al eliminar el viaje personalizado');
+        }
+
+        await fetchCustomTrips();
+        setShowCustomTripModal(false);
+        setEditingCustomTrip(null);
+      } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Error al eliminar el viaje personalizado');
       }
     }
   };
@@ -239,467 +281,510 @@ const BookingsView = () => {
   };
 
   const renderActionButtons = (booking) => (
-    <div className="space-x-2">
+    <div className="flex space-x-2">
       <button
         onClick={() => handleStatusChange(booking.id, 'CONFIRMED')}
-        className={`px-3 py-1 rounded text-sm font-medium ${
-          booking.status === 'CONFIRMED'
-            ? 'bg-green-500 text-white'
-            : 'bg-gray-200 text-gray-700 hover:bg-green-500 hover:text-white'
-        }`}
+        className={`${buttonStyles.statusButton.base} ${buttonStyles.statusButton.confirmed} 
+          ${booking.status === 'CONFIRMED' ? buttonStyles.statusButton.active : ''}`}
       >
-        Accept
+        Confirmar
       </button>
       <button
         onClick={() => handleStatusChange(booking.id, 'PENDING')}
-        className={`px-3 py-1 rounded text-sm font-medium ${
-          booking.status === 'PENDING'
-            ? 'bg-yellow-500 text-white'
-            : 'bg-gray-200 text-gray-700 hover:bg-yellow-500 hover:text-white'
-        }`}
+        className={`${buttonStyles.statusButton.base} ${buttonStyles.statusButton.pending}
+          ${booking.status === 'PENDING' ? buttonStyles.statusButton.active : ''}`}
       >
-        Pending
+        Pendiente
       </button>
       <button
         onClick={() => handleStatusChange(booking.id, 'CANCELLED')}
-        className={`px-3 py-1 rounded text-sm font-medium ${
-          booking.status === 'CANCELLED'
-            ? 'bg-red-500 text-white'
-            : 'bg-gray-200 text-gray-700 hover:bg-red-500 hover:text-white'
-        }`}
+        className={`${buttonStyles.statusButton.base} ${buttonStyles.statusButton.cancelled}
+          ${booking.status === 'CANCELLED' ? buttonStyles.statusButton.active : ''}`}
       >
-        Cancel
+        Cancelar
       </button>
       <button
         onClick={() => handleEdit(booking)}
-        className="px-3 py-1 rounded text-sm font-medium bg-[#4DA8DA] text-white hover:bg-[#3a8bb9]"
+        className={buttonStyles.editButton}
       >
-        Edit
+        Editar
       </button>
     </div>
   );
 
+  // Añadir esta función para filtrar las reservas
+  const filteredBookings = bookings.filter(booking => {
+    const matchesSearch = 
+      booking.Trip?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.Trip?.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.User?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.User?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'ALL' || booking.status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Añadir esta función para filtrar los custom trips
+  const filteredCustomTrips = customTrips.filter(trip => {
+    const matchesSearch = 
+      trip.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trip.User?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trip.User?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'ALL' || trip.status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <AdminSidebar user={user} />
-      <div className="ml-64 flex-1 p-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Bookings Management</h1>
-        </div>
+    <PageTransition>
+      <div className="flex h-screen bg-gray-100">
+        <AdminSidebar user={user} />
+        <div className="flex-1 overflow-hidden">
+          <div className="p-8 overflow-y-auto h-full">
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-gray-900">Gestión de Reservas</h1>
+            </div>
 
-        {/* Tabs */}
-        <div className="mb-6">
-          <div className="border-b border-gray-200">
-            <button
-              className={`py-2 px-4 mr-4 ${
-                activeTab === 'bookings'
-                  ? 'border-b-2 border-[#4DA8DA] text-[#4DA8DA] font-medium bg-white'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              onClick={() => setActiveTab('bookings')}
-            >
-              Regular Bookings
-            </button>
-            <button
-              className={`py-2 px-4 ${
-                activeTab === 'custom'
-                  ? 'border-b-2 border-[#4DA8DA] text-[#4DA8DA] font-medium bg-white'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              onClick={() => setActiveTab('custom')}
-            >
-              Custom Trips
-            </button>
-          </div>
-        </div>
+            {/* Tabs */}
+            <div className="mb-6">
+              <div className="border-b border-gray-200">
+                <button
+                  className={`py-2 px-4 mr-4 ${
+                    activeTab === 'bookings'
+                      ? 'border-b-2 border-[#4DA8DA] bg-[#1a1a1a] text-white font-medium'
+                      : 'text-gray-600 hover:text-[#4DA8DA]'
+                  }`}
+                  onClick={() => setActiveTab('bookings')}
+                >
+                  Reservas Regulares
+                </button>
+                <button
+                  className={`py-2 px-4 ${
+                    activeTab === 'custom'
+                      ? 'border-b-2 border-[#4DA8DA] bg-[#1a1a1a] text-white font-medium'
+                      : 'text-gray-600 hover:text-[#4DA8DA]'
+                  }`}
+                  onClick={() => setActiveTab('custom')}
+                >
+                  Viajes Personalizados
+                </button>
+              </div>
+            </div>
 
-        {/* Table Content */}
-        {loading ? (
-          <div className="text-center py-4 text-gray-900">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#4DA8DA]"></div>
-            <p className="mt-2">Loading...</p>
-          </div>
-        ) : activeTab === 'bookings' ? (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Destination</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Dates</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {bookings.map((booking) => (
-                  <tr key={booking.id} className="text-gray-900">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <img 
-                          src={booking.Trip?.image || '/placeholder-image.jpg'} 
-                          alt={booking.Trip?.title || 'Destino'}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div>
-                          <div className="font-medium">{booking.Trip?.title || 'Destino no disponible'}</div>
-                          <div className="text-sm text-gray-500">{booking.Trip?.destination || 'Ubicación no disponible'}</div>
-                        </div>
+            {/* Search and Filter Section */}
+            <div className="mb-6 flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Buscar por destino, usuario o email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent text-gray-900 placeholder-gray-500"
+                />
+              </div>
+              <div className="w-full md:w-48">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent text-gray-900"
+                >
+                  <option value="ALL">Todos los estados</option>
+                  <option value="CONFIRMED">Confirmados</option>
+                  <option value="PENDING">Pendientes</option>
+                  <option value="CANCELLED">Cancelados</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Content */}
+            {loading ? (
+              <Spinner />
+            ) : activeTab === 'bookings' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredBookings.map((booking) => (
+                  <div key={booking.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div className="relative h-48">
+                      <img 
+                        src={booking.Trip?.image || '/placeholder-image.jpg'} 
+                        alt={booking.Trip?.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                          booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {booking.status}
+                        </span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium">
-                        {booking.user?.username || 'Usuario no disponible'}
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                        {booking.Trip?.title || 'Destino no disponible'}
+                      </h3>
+                      <p className="text-gray-600 mb-4">{booking.Trip?.destination}</p>
+                      <div className="space-y-2 text-gray-600">
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">👤</span>
+                          {booking.User?.username}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">📧</span>
+                          {booking.User?.email}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">📅</span>
+                          {booking.start_date} - {booking.end_date}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">🏨</span>
+                          {booking.room_type}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">👥</span>
+                          {booking.number_of_participants} {booking.number_of_participants === 1 ? 'persona' : 'personas'}
+                        </p>
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {booking.user?.email || 'Email no disponible'}
+                      <div className="mt-6 flex flex-wrap gap-2">
+                        {renderActionButtons(booking)}
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div>{new Date(booking.departure_date).toLocaleDateString('es-ES')}</div>
-                      <div>{new Date(booking.return_date).toLocaleDateString('es-ES')}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                        booking.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {booking.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {renderActionButtons(booking)}
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Destination</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Dates</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {customTrips.map((trip) => (
-                  <tr key={trip.id} className="text-gray-900">
-                    {/* Custom Trips Table */}
-                    <td className="px-6 py-4">{trip.destination}</td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium">{trip.User?.username || 'Usuario no disponible'}</div>
-                      <div className="text-sm text-gray-500">{trip.User?.email || 'Email no disponible'}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div>{new Date(trip.departure_date).toLocaleDateString('es-ES')}</div>
-                      <div>{new Date(trip.return_date).toLocaleDateString('es-ES')}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        trip.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                        trip.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {trip.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="space-x-2">
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCustomTrips.map((trip) => (
+                  <div key={trip.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div className="p-6">
+                      <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                        {trip.destination}
+                      </h3>
+                      <div className="space-y-2 text-gray-600">
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">👤</span>
+                          {trip.User?.username}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">📧</span>
+                          {trip.User?.email}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">📅</span>
+                          {new Date(trip.departure_date).toLocaleDateString('es-ES')} - {new Date(trip.return_date).toLocaleDateString('es-ES')}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">👥</span>
+                          {trip.number_of_participants} {trip.number_of_participants === 1 ? 'persona' : 'personas'}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">💰</span>
+                          {trip.budget_per_person ? `${trip.budget_per_person}€ por persona` : 'Sin presupuesto'}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-[#4DA8DA]">🏨</span>
+                          {trip.accommodation_type || 'Sin alojamiento'}
+                        </p>
+                      </div>
+                      <div className="mt-6 flex flex-wrap gap-2">
                         <button
                           onClick={() => handleCustomTripStatusChange(trip.id, 'APPROVED')}
-                          className={`px-3 py-1 rounded text-sm font-medium ${
-                            trip.status === 'APPROVED'
-                              ? 'bg-green-500 text-white'
-                              : 'bg-gray-200 text-gray-700 hover:bg-green-500 hover:text-white'
-                          }`}
+                          className={`${buttonStyles.statusButton.base} ${buttonStyles.statusButton.confirmed} 
+                            ${trip.status === 'APPROVED' ? buttonStyles.statusButton.active : ''}`}
                         >
-                          Accept
+                          Aceptar
                         </button>
                         <button
                           onClick={() => handleCustomTripStatusChange(trip.id, 'PENDING')}
-                          className={`px-3 py-1 rounded text-sm font-medium ${
-                            trip.status === 'PENDING'
-                              ? 'bg-yellow-500 text-white'
-                              : 'bg-gray-200 text-gray-700 hover:bg-yellow-500 hover:text-white'
-                          }`}
+                          className={`${buttonStyles.statusButton.base} ${buttonStyles.statusButton.pending}
+                            ${trip.status === 'PENDING' ? buttonStyles.statusButton.active : ''}`}
                         >
-                          Pending
+                          Pendiente
                         </button>
                         <button
                           onClick={() => handleCustomTripStatusChange(trip.id, 'CANCELLED')}
-                          className={`px-3 py-1 rounded text-sm font-medium ${
-                            trip.status === 'CANCELLED'
-                              ? 'bg-red-500 text-white'
-                              : 'bg-gray-200 text-gray-700 hover:bg-red-500 hover:text-white'
-                          }`}
+                          className={`${buttonStyles.statusButton.base} ${buttonStyles.statusButton.cancelled}
+                            ${trip.status === 'CANCELLED' ? buttonStyles.statusButton.active : ''}`}
                         >
-                          Cancel
+                          Cancelar
                         </button>
                         <button
                           onClick={() => {
                             setEditingCustomTrip(trip);
                             setShowCustomTripModal(true);
                           }}
-                          className="px-3 py-1 rounded text-sm font-medium bg-[#4DA8DA] text-white hover:bg-[#3a8bb9]"
+                          className={buttonStyles.editButton}
                         >
-                          Edit
+                          Editar
                         </button>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Edit Booking Modal */}
-        {showEditModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg p-6 max-w-lg w-full">
-              <h2 className="text-xl font-bold mb-4 text-gray-900">Editar Reserva</h2>
-              
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3 mb-4">
-                  <img 
-                    src={editingBooking.Trip?.image || '/placeholder-image.jpg'} 
-                    alt={editingBooking.Trip?.title}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div>
-                    <div className="font-medium">{editingBooking.Trip?.title}</div>
-                    <div className="text-sm text-gray-500">{editingBooking.Trip?.destination}</div>
+                    </div>
                   </div>
-                </div>
-                <div className="text-sm text-gray-600">
-                  <div>Usuario: {editingBooking.User?.username}</div>
-                  <div>Email: {editingBooking.User?.email}</div>
+                ))}
+              </div>
+            )}
+
+            {/* Edit Booking Modal */}
+            {showEditModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-lg p-6 max-w-lg w-full">
+                  <h2 className="text-xl font-bold mb-4 text-gray-900">Editar Reserva</h2>
+                  
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <img 
+                        src={editingBooking.Trip?.image || '/placeholder-image.jpg'} 
+                        alt={editingBooking.Trip?.title}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      <div>
+                        <div className="font-medium">{editingBooking.Trip?.title}</div>
+                        <div className="text-sm text-gray-500">{editingBooking.Trip?.destination}</div>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <div>Usuario: {editingBooking.User?.username}</div>
+                      <div>Email: {editingBooking.User?.email}</div>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleEditBooking} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Fecha de Inicio</label>
+                      <input
+                        type="date"
+                        value={editingBooking.start_date}
+                        onChange={(e) => setEditingBooking({
+                          ...editingBooking,
+                          start_date: e.target.value
+                        })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Fecha de Fin</label>
+                      <input
+                        type="date"
+                        value={editingBooking.end_date}
+                        onChange={(e) => setEditingBooking({
+                          ...editingBooking,
+                          end_date: e.target.value
+                        })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Tipo de Habitación</label>
+                      <select
+                        value={editingBooking.room_type || ''}
+                        onChange={(e) => setEditingBooking({
+                          ...editingBooking,
+                          room_type: e.target.value
+                        })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                      >
+                        <option value="">Seleccionar tipo de habitación</option>
+                        <option value="standard">Vista Caldera Estándar</option>
+                        <option value="superior">Vista Mar Superior</option>
+                        <option value="deluxe">Suite Deluxe</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Número de Huéspedes</label>
+                      <input
+                        type="number"
+                        value={editingBooking.number_of_participants || ''}
+                        onChange={(e) => setEditingBooking({
+                          ...editingBooking,
+                          number_of_participants: parseInt(e.target.value)
+                        })}
+                        min="1"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Peticiones Especiales</label>
+                      <textarea
+                        value={editingBooking.special_requests || ''}
+                        onChange={(e) => setEditingBooking({
+                          ...editingBooking,
+                          special_requests: e.target.value
+                        })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                        rows="3"
+                      />
+                    </div>
+
+                    <div className="flex justify-center space-x-4 mt-4 border-t pt-4">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBooking(editingBooking.id)}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        Eliminar Reserva
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowEditModal(false);
+                          setEditingBooking(null);
+                        }}
+                        className="px-4 py-2 bg-[#1a1a1a] text-white rounded hover:bg-gray-800"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-[#4DA8DA] text-white rounded hover:bg-[#3a8bb9]"
+                      >
+                        Guardar Cambios
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
+            )}
 
-              <form onSubmit={handleEditBooking} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Fecha de Inicio</label>
-                  <input
-                    type="date"
-                    value={editingBooking.start_date}
-                    onChange={(e) => setEditingBooking({
-                      ...editingBooking,
-                      start_date: e.target.value
-                    })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                  />
-                </div>
+            {/* Custom Trip Edit Modal */}
+            {showCustomTripModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-lg p-6 max-w-lg w-full">
+                  <h2 className="text-xl font-bold mb-4 text-gray-900">Editar Viaje Personalizado</h2>
+                  
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-600">
+                      <div>Usuario: {editingCustomTrip.User?.username}</div>
+                      <div>Email: {editingCustomTrip.User?.email}</div>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Fecha de Fin</label>
-                  <input
-                    type="date"
-                    value={editingBooking.end_date}
-                    onChange={(e) => setEditingBooking({
-                      ...editingBooking,
-                      end_date: e.target.value
-                    })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                  />
-                </div>
+                  <form onSubmit={handleEditCustomTrip} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Destino</label>
+                      <input
+                        type="text"
+                        value={editingCustomTrip.destination}
+                        onChange={(e) => setEditingCustomTrip({
+                          ...editingCustomTrip,
+                          destination: e.target.value
+                        })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Tipo de Habitación</label>
-                  <select
-                    value={editingBooking.room_type || ''}
-                    onChange={(e) => setEditingBooking({
-                      ...editingBooking,
-                      room_type: e.target.value
-                    })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                  >
-                    <option value="">Seleccionar tipo de habitación</option>
-                    <option value="standard">Vista Caldera Estándar</option>
-                    <option value="superior">Vista Mar Superior</option>
-                    <option value="deluxe">Suite Deluxe</option>
-                  </select>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Fecha de Inicio</label>
+                      <input
+                        type="date"
+                        value={editingCustomTrip.departure_date}
+                        onChange={(e) => setEditingCustomTrip({
+                          ...editingCustomTrip,
+                          departure_date: e.target.value
+                        })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Número de Huéspedes</label>
-                  <input
-                    type="number"
-                    value={editingBooking.number_of_participants || ''}
-                    onChange={(e) => setEditingBooking({
-                      ...editingBooking,
-                      number_of_participants: parseInt(e.target.value)
-                    })}
-                    min="1"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Fecha de Fin</label>
+                      <input
+                        type="date"
+                        value={editingCustomTrip.return_date}
+                        onChange={(e) => setEditingCustomTrip({
+                          ...editingCustomTrip,
+                          return_date: e.target.value
+                        })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Peticiones Especiales</label>
-                  <textarea
-                    value={editingBooking.special_requests || ''}
-                    onChange={(e) => setEditingBooking({
-                      ...editingBooking,
-                      special_requests: e.target.value
-                    })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                    rows="3"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Número de Participantes</label>
+                      <input
+                        type="number"
+                        value={editingCustomTrip.number_of_participants}
+                        onChange={(e) => setEditingCustomTrip({
+                          ...editingCustomTrip,
+                          number_of_participants: parseInt(e.target.value)
+                        })}
+                        min="1"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                      />
+                    </div>
 
-                <div className="flex justify-end space-x-2 mt-4 border-t pt-4">
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteBooking(editingBooking.id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    Eliminar Reserva
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowEditModal(false);
-                      setEditingBooking(null);
-                    }}
-                    className="px-4 py-2 text-gray-700 hover:text-gray-900"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-[#4DA8DA] text-white rounded hover:bg-[#3a8bb9]"
-                  >
-                    Guardar Cambios
-                  </button>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Presupuesto por Persona</label>
+                      <input
+                        type="number"
+                        value={editingCustomTrip.budget_per_person}
+                        onChange={(e) => setEditingCustomTrip({
+                          ...editingCustomTrip,
+                          budget_per_person: parseFloat(e.target.value)
+                        })}
+                        min="0"
+                        step="0.01"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Tipo de Alojamiento</label>
+                      <select
+                        value={editingCustomTrip.accommodation_type}
+                        onChange={(e) => setEditingCustomTrip({
+                          ...editingCustomTrip,
+                          accommodation_type: e.target.value
+                        })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
+                      >
+                        <option value="Hotel">Hotel</option>
+                        <option value="Resort">Resort</option>
+                        <option value="Villa">Villa</option>
+                        <option value="Apartamento">Apartamento</option>
+                      </select>
+                    </div>
+
+                    {/* Reemplazar la sección de los botones del Custom Trip Modal */}
+                    <div className="flex justify-center space-x-4 mt-4 border-t pt-4">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCustomTrip(editingCustomTrip.id)}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        Eliminar Viaje
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowCustomTripModal(false);
+                          setEditingCustomTrip(null);
+                        }}
+                        className="px-4 py-2 bg-[#1a1a1a] text-white rounded hover:bg-gray-800"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-[#4DA8DA] text-white rounded hover:bg-[#3a8bb9]"
+                      >
+                        Guardar Cambios
+                      </button>
+                    </div>
+                  </form>
                 </div>
-              </form>
-            </div>
+              </div>
+            )}
           </div>
-        )}
-
-        {/* Custom Trip Edit Modal */}
-        {showCustomTripModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg p-6 max-w-lg w-full">
-              <h2 className="text-xl font-bold mb-4 text-gray-900">Edit Custom Trip</h2>
-              <form onSubmit={handleEditCustomTrip} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Destination</label>
-                  <input
-                    type="text"
-                    value={editingCustomTrip.destination}
-                    onChange={(e) => setEditingCustomTrip({
-                      ...editingCustomTrip,
-                      destination: e.target.value
-                    })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    value={editingCustomTrip.departure_date}
-                    onChange={(e) => setEditingCustomTrip({
-                      ...editingCustomTrip,
-                      departure_date: e.target.value
-                    })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">End Date</label>
-                  <input
-                    type="date"
-                    value={editingCustomTrip.return_date}
-                    onChange={(e) => setEditingCustomTrip({
-                      ...editingCustomTrip,
-                      return_date: e.target.value
-                    })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Number of Participants</label>
-                  <input
-                    type="number"
-                    value={editingCustomTrip.number_of_participants}
-                    onChange={(e) => setEditingCustomTrip({
-                      ...editingCustomTrip,
-                      number_of_participants: parseInt(e.target.value)
-                    })}
-                    min="1"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Budget per Person</label>
-                  <input
-                    type="number"
-                    value={editingCustomTrip.budget_per_person}
-                    onChange={(e) => setEditingCustomTrip({
-                      ...editingCustomTrip,
-                      budget_per_person: parseFloat(e.target.value)
-                    })}
-                    min="0"
-                    step="0.01"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Accommodation Type</label>
-                  <select
-                    value={editingCustomTrip.accommodation_type}
-                    onChange={(e) => setEditingCustomTrip({
-                      ...editingCustomTrip,
-                      accommodation_type: e.target.value
-                    })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4DA8DA] focus:ring-[#4DA8DA] text-gray-900"
-                  >
-                    <option value="Hotel">Hotel</option>
-                    <option value="Resort">Resort</option>
-                    <option value="Villa">Villa</option>
-                    <option value="Apartamento">Apartamento</option>
-                  </select>
-                </div>
-
-                <div className="flex justify-end space-x-2 mt-4 pt-4 border-t">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCustomTripModal(false);
-                      setEditingCustomTrip(null);
-                    }}
-                    className="px-4 py-2 text-gray-700 hover:text-gray-900"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-[#4DA8DA] text-white rounded hover:bg-[#3a8bb9]"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 

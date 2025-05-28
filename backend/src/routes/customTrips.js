@@ -211,4 +211,29 @@ router.put('/:id', [auth, isAdmin], async (req, res) => {
   }
 });
 
+// Añade esta ruta para eliminar custom trips
+router.delete('/:id', [auth, isAdmin], async (req, res) => {
+  try {
+    const query = `
+      DELETE FROM custom_trips
+      WHERE id = $1
+      RETURNING *
+    `;
+
+    const [result] = await sequelize.query(query, {
+      bind: [req.params.id],
+      type: sequelize.QueryTypes.DELETE
+    });
+
+    if (!result) {
+      return res.status(404).json({ message: 'Custom trip not found' });
+    }
+
+    res.json({ message: 'Custom trip deleted successfully' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Error deleting custom trip' });
+  }
+});
+
 module.exports = router;

@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FavoriteButton from '../components/FavoriteButton';
 import DestinationCard from '../components/DestinationCard';
+import PageTransition from '../components/PageTransition';
 
 const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,41 +43,43 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
-      <main className="flex-grow">
-        <section className="bg-[#4DA8DA] text-white py-20">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl font-bold mb-4">Descubre tu próxima aventura</h1>
-            <p className="text-xl">Explora destinos únicos y crea memorias inolvidables</p>
-          </div>
-        </section>
+    <PageTransition>
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        
+        <main className="flex-grow">
+          <section className="bg-[#4DA8DA] text-white py-12 md:py-16 lg:py-20">
+            <div className="container mx-auto px-4 text-center">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4">Descubre tu próxima aventura</h1>
+              <p className="text-base md:text-lg lg:text-xl">Explora destinos únicos y crea memorias inolvidables</p>
+            </div>
+          </section>
 
-        <section className="container mx-auto px-4 py-12">
-          <h2 className="text-3xl font-bold mb-8">Destinos Destacados</h2>
-          
-          {loading && (
-            <div className="text-center">Cargando destinos...</div>
-          )}
-          
-          {error && (
-            <div className="text-red-500 text-center">{error}</div>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {destinations.map(destination => (
-              <DestinationCard 
-                key={destination.id} 
-                destination={destination} 
-              />
-            ))}
-          </div>
-        </section>
-      </main>
+          <section className="container mx-auto px-4 py-8 md:py-10 lg:py-12">
+            <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Destinos Destacados</h2>
+            
+            {loading && (
+              <div className="text-center py-4">Cargando destinos...</div>
+            )}
+            
+            {error && (
+              <div className="text-red-500 text-center py-4">{error}</div>
+            )}
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {destinations.map(destination => (
+                <DestinationCard 
+                  key={destination.id} 
+                  destination={destination} 
+                />
+              ))}
+            </div>
+          </section>
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </PageTransition>
   );
 };
 

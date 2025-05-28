@@ -6,7 +6,7 @@ class StripeService {
   async createPaymentIntent(bookingId, amount) {
     try {
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Stripe expects amounts in cents
+        amount: Math.round(amount * 100),
         currency: 'eur',
         metadata: { bookingId }
       });
@@ -15,7 +15,7 @@ class StripeService {
         booking_id: bookingId,
         stripe_payment_intent_id: paymentIntent.id,
         amount,
-        status: 'PENDING'
+        status: 'PENDING' // Asegurarse de que el estado inicial sea PENDING
       });
 
       return paymentIntent;

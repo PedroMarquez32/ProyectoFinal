@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/AdminSidebar';
+import PageTransition from '../../components/PageTransition'; // Asegúrate de que la ruta sea correcta
 
 const UsersView = () => {
   const [users, setUsers] = useState([]);
@@ -130,85 +131,91 @@ const UsersView = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <AdminSidebar user={currentAdmin} />
-      <div className="ml-64 flex-1 p-8">
-        <h1 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Users Management</h1>
-        
-        <div className="bg-white rounded-lg shadow">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[#3a3a3c] uppercase">Username</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[#3a3a3c] uppercase">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[#3a3a3c] uppercase">Role</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[#3a3a3c] uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {users.map(user => (
-                  <tr key={user.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-[#3a3a3c]">
-                      {editingUser?.id === user.id ? (
-                        <input
-                          type="text"
-                          value={editingUser.username}
-                          onChange={(e) => setEditingUser({...editingUser, username: e.target.value})}
-                          className="w-full border rounded px-2 py-1 focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent"
-                        />
-                      ) : (
-                        user.username
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-[#3a3a3c]">
-                      {editingUser?.id === user.id ? (
-                        <input
-                          type="email"
-                          value={editingUser.email}
-                          onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
-                          className="w-full border rounded px-2 py-1 focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent"
-                        />
-                      ) : (
-                        user.email
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {renderRoleSelector(user)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {editingUser?.id === user.id ? (
-                        <div className="flex space-x-2">
-                          <button 
-                            onClick={() => handleEditUser(user.id)}
-                            className="text-green-600 hover:text-green-800"
-                          >
-                            Save
-                          </button>
-                          <button 
-                            onClick={() => setEditingUser(null)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button 
-                          onClick={() => setEditingUser(user)}
-                          className="text-[#4DA8DA] hover:text-[#3a8bb9]"
-                        >
-                          Edit
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    <PageTransition>
+      <div className="flex h-screen bg-gray-100">
+        <AdminSidebar user={currentAdmin} />
+        <div className="flex-1 overflow-hidden">
+          <div className="p-8 overflow-y-auto h-full">
+            <h1 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Gestión de Usuarios</h1>
+            
+            <div className="bg-white rounded-lg shadow h-[calc(100vh-10rem)]">
+              <div className="overflow-auto h-full">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#3a3a3c] uppercase">Usuario</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#3a3a3c] uppercase">Correo</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#3a3a3c] uppercase">Rol</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#3a3a3c] uppercase">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {users.map(user => (
+                      <tr key={user.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-[#3a3a3c]">
+                          {editingUser?.id === user.id ? (
+                            <input
+                              type="text"
+                              value={editingUser.username}
+                              onChange={(e) => setEditingUser({...editingUser, username: e.target.value})}
+                              className="w-full border rounded px-2 py-1 focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent"
+                            />
+                          ) : (
+                            user.username
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-[#3a3a3c]">
+                          {editingUser?.id === user.id ? (
+                            <input
+                              type="email"
+                              value={editingUser.email}
+                              onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                              className="w-full border rounded px-2 py-1 focus:ring-2 focus:ring-[#4DA8DA] focus:border-transparent"
+                            />
+                          ) : (
+                            user.email
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {renderRoleSelector(user)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {editingUser?.id === user.id ? (
+                            <div className="flex space-x-2">
+                              <button 
+                                onClick={() => handleEditUser(user.id)}
+                                className="text-green-600 hover:text-green-800"
+                              >
+                                Guardar
+                              </button>
+                              <button 
+                                onClick={() => setEditingUser(null)}
+                                className="text-red-600 hover:text-red-800"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex space-x-2">
+                              <button 
+                                onClick={() => setEditingUser(user)}
+                                className="text-[#4DA8DA] hover:text-[#3a8bb9]"
+                              >
+                                Editar
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 

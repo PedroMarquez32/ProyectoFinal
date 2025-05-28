@@ -30,26 +30,46 @@ router.get('/transactions', [auth, isAdmin], async (req, res) => {
           [Op.gte]: startDate
         }
       },
-      include: [{
-        model: Booking,
-        include: [
-          { model: User, attributes: ['username', 'email'] },
-          { model: Trip, attributes: ['title'] }
-        ]
-      }],
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'username', 'email']
+        },
+        {
+          model: Booking,
+          include: [
+            {
+              model: User,
+              attributes: ['id', 'username', 'email']
+            },
+            {
+              model: Trip,
+              attributes: ['title']
+            }
+          ]
+        }
+      ],
       order: [['createdAt', 'DESC']]
     });
 
-    const formattedTransactions = payments.map(payment => ({
-      id: payment.id,
-      amount: parseFloat(payment.amount),
-      status: payment.status.toLowerCase(),
-      customer_name: payment.Booking?.User?.username || 'Usuario no disponible',
-      customer_email: payment.Booking?.User?.email || 'Email no disponible',
-      trip_title: payment.Booking?.Trip?.title || 'Viaje no disponible',
-      date: payment.createdAt,
-      booking_id: payment.booking_id
-    }));
+    const formattedTransactions = payments.map(payment => {
+      const plainPayment = payment.get({ plain: true });
+      // Primero intentar obtener el usuario del pago directo, luego de la reserva
+      const user = plainPayment.User || plainPayment.Booking?.User;
+      
+      return {
+        id: plainPayment.id,
+        amount: parseFloat(plainPayment.amount),
+        status: plainPayment.status.toLowerCase(),
+        customer_name: plainPayment.customer_name || user?.username || 'Usuario no disponible',
+        customer_email: plainPayment.customer_email || user?.email || '',
+        user_id: user?.id,
+        booking_id: plainPayment.booking_id,
+        trip_title: plainPayment.Booking?.Trip?.title || '',
+        date: plainPayment.createdAt,
+        User: user
+      };
+    });
 
     const totalRevenue = formattedTransactions
       .filter(t => t.status === 'completed')
@@ -69,26 +89,38 @@ router.get('/transactions', [auth, isAdmin], async (req, res) => {
 router.patch('/transactions/:id/status', [auth, isAdmin], async (req, res) => {
   try {
     const { status } = req.body;
-    const payment = await Payment.findByPk(req.params.id);
+    const payment = await Payment.findByPk(req.params.id, {
+      include: [{
+        model: Booking,
+        include: [{
+          model: User,
+          attributes: ['username', 'email']
+        }]
+      }]
+    });
 
     if (!payment) {
       return res.status(404).json({ message: 'Pago no encontrado' });
     }
 
     await payment.update({ 
-      status,
-      payment_date: status === 'COMPLETED' ? new Date() : null
+      status: status.toUpperCase(),
+      payment_date: status.toUpperCase() === 'COMPLETED' ? new Date() : null
     });
 
-    // Si el pago se completa, actualizar también el estado de la reserva
-    if (status === 'COMPLETED') {
+    if (status.toUpperCase() === 'COMPLETED') {
       await Booking.update(
         { status: 'CONFIRMED' },
         { where: { id: payment.booking_id } }
       );
-    } else if (status === 'CANCELLED') {
+    } else if (status.toUpperCase() === 'CANCELLED') {
       await Booking.update(
         { status: 'CANCELLED' },
+        { where: { id: payment.booking_id } }
+      );
+    } else if (status.toUpperCase() === 'PENDING') {
+      await Booking.update(
+        { status: 'PENDING' },
         { where: { id: payment.booking_id } }
       );
     }
@@ -97,6 +129,69 @@ router.patch('/transactions/:id/status', [auth, isAdmin], async (req, res) => {
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ message: 'Error al actualizar el estado del pago' });
+  }
+});
+
+// Update payment amount
+router.patch('/transactions/:id/amount', [auth, isAdmin], async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const payment = await Payment.findByPk(req.params.id);
+
+    if (!payment) {
+      return res.status(404).json({ message: 'Pago no encontrado' });
+    }
+
+    await payment.update({ amount });
+
+    // Si hay una reserva asociada, actualizar su precio total
+    if (payment.booking_id) {
+      await Booking.update(
+        { total_price: amount },
+        { where: { id: payment.booking_id } }
+      );
+    }
+
+    res.json(payment);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Error al actualizar el monto del pago' });
+  }
+});
+
+// Crear pago manualmente (sin booking_id ni user_id)
+router.post('/manual', [auth, isAdmin], async (req, res) => {
+  try {
+    const { booking_id, user_id, amount, status, customer_name, customer_email } = req.body;
+    if (!amount || !status) {
+      return res.status(400).json({ message: 'Faltan campos obligatorios' });
+    }
+    const payment = await Payment.create({
+      booking_id: booking_id || null,
+      user_id: user_id || null,
+      amount,
+      status,
+      customer_name: customer_name || null,
+      customer_email: customer_email || null,
+      payment_date: status === 'COMPLETED' ? new Date() : null
+    });
+    res.status(201).json(payment);
+  } catch (error) {
+    console.error('Error creando pago manual:', error);
+    res.status(500).json({ message: 'Error creando pago manual' });
+  }
+});
+
+// Eliminar pago
+router.delete('/transactions/:id', [auth, isAdmin], async (req, res) => {
+  try {
+    const payment = await Payment.findByPk(req.params.id);
+    if (!payment) return res.status(404).json({ message: 'Pago no encontrado' });
+    await payment.destroy();
+    res.json({ message: 'Pago eliminado correctamente' });
+  } catch (error) {
+    console.error('Error eliminando pago:', error);
+    res.status(500).json({ message: 'Error eliminando pago' });
   }
 });
 

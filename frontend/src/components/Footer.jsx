@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const Footer = () => {
   return (
     <footer className="bg-[#3a3a3c] text-[#f6e7d7] py-8">
@@ -12,10 +14,10 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-4">Enlaces rápidos</h4>
             <ul className="space-y-2">
-              <li><a href="/destinations" className="hover:text-[#4DA8DA]">Destinos</a></li>
-              <li><a href="/packages" className="hover:text-[#4DA8DA]">Paquetes</a></li>
-              <li><a href="/about" className="hover:text-[#4DA8DA]">Sobre nosotros</a></li>
-              <li><a href="/contact" className="hover:text-[#4DA8DA]">Contacto</a></li>
+              <li><Link to="/destinations" className="hover:text-[#4DA8DA]">Destinos</Link></li>
+              <li><Link to="/custom-trip" className="hover:text-[#4DA8DA]">Viaje Personalizado</Link></li>
+              <li><Link to="/about" className="hover:text-[#4DA8DA]">Sobre nosotros</Link></li>
+              <li><Link to="/profile" className="hover:text-[#4DA8DA]">Mi perfil</Link></li>
             </ul>
           </div>
           <div>
@@ -29,9 +31,9 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-4">Síguenos</h4>
             <div className="flex space-x-4">
-              <a href="#" className="hover:text-[#4DA8DA]">Facebook</a>
-              <a href="#" className="hover:text-[#4DA8DA]">Instagram</a>
-              <a href="#" className="hover:text-[#4DA8DA]">Twitter</a>
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#4DA8DA]">Facebook</a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#4DA8DA]">Instagram</a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#4DA8DA]">Twitter</a>
             </div>
           </div>
         </div>

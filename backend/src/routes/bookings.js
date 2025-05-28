@@ -45,13 +45,14 @@ router.post('/', auth, async (req, res) => {
       room_type: req.body.room_type,
       number_of_participants: req.body.number_of_participants,
       total_price: req.body.total_price,
-      status: 'PENDING', // Cambiado a PENDING
+      status: 'PENDING',
       special_requests: req.body.special_requests || ''
     });
 
-    // Crear el pago pendiente
-    await Payment.create({
+    // Crear el pago asociado incluyendo el user_id
+    const payment = await Payment.create({
       booking_id: booking.id,
+      user_id: req.user.id, // Asegurarse de incluir el user_id
       amount: req.body.total_price,
       status: 'PENDING'
     });
@@ -59,10 +60,7 @@ router.post('/', auth, async (req, res) => {
     res.status(201).json(booking);
   } catch (error) {
     console.error('Error creating booking:', error);
-    res.status(500).json({ 
-      message: 'Error al crear la reserva',
-      error: error.message 
-    });
+    res.status(500).json({ message: 'Error al crear la reserva' });
   }
 });
 
@@ -146,29 +144,46 @@ router.patch('/:id/status', [auth, isAdmin], async (req, res) => {
   }
 });
 
-// Update booking (admin only)
+// Update the PUT endpoint to handle booking updates
 router.put('/:id', [auth, isAdmin], async (req, res) => {
   try {
     const booking = await Booking.findByPk(req.params.id);
-    
     if (!booking) {
       return res.status(404).json({ message: 'Reserva no encontrada' });
     }
 
-    // Actualizar la reserva
+    const {
+      departure_date,
+      return_date,
+      room_type,
+      number_of_participants,
+      special_requests
+    } = req.body;
+
+    // Update booking with new dates without validation
     await booking.update({
-      departure_date: req.body.start_date,  // Mapeo de start_date a departure_date
-      return_date: req.body.end_date,     // Mapeo de end_date a return_date
-      room_type: req.body.room_type,
-      number_of_participants: req.body.number_of_participants,
-      total_price: req.body.total_price,
-      special_requests: req.body.special_requests
+      departure_date,
+      return_date,
+      room_type,
+      number_of_participants,
+      special_requests
     });
+
+    // Update associated payment dates if they exist
+    const payment = await Payment.findOne({
+      where: { booking_id: booking.id }
+    });
+
+    if (payment) {
+      await payment.update({
+        payment_date: departure_date // Update payment date to match new departure
+      });
+    }
 
     res.json(booking);
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Error del servidor' });
+    console.error('Error updating booking:', error);
+    res.status(500).json({ message: 'Error al actualizar la reserva' });
   }
 });
 
@@ -236,7 +251,14 @@ router.delete('/:id', [auth, isAdmin], async (req, res) => {
       return res.status(404).json({ message: 'Reserva no encontrada' });
     }
 
+    // Eliminar los pagos asociados
+    await Payment.destroy({
+      where: { booking_id: booking.id }
+    });
+
+    // Eliminar la reserva
     await booking.destroy();
+
     res.json({ message: 'Reserva eliminada correctamente' });
   } catch (error) {
     console.error('Error:', error);

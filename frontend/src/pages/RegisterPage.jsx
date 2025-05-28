@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import PageTransition from '../components/PageTransition';
+import { FaUserCircle, FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -54,80 +57,85 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="bg-[#f6e7d7] min-h-screen flex flex-col">
+    <>
       <Navbar />
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Crear una cuenta
-            </h2>
-          </div>
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="rounded-md shadow-sm -space-y-px">
-              <div>
+      <PageTransition>
+        <div className="min-h-screen bg-[#f6e7d7] flex flex-col items-center justify-center py-8 md:py-12 relative overflow-hidden">
+          {/* Círculos decorativos */}
+          <div className="absolute -top-16 md:-top-32 -left-16 md:-left-32 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-br from-[#4DA8DA]/30 to-[#2980B9]/10 rounded-full blur-2xl z-0"></div>
+          <div className="absolute -bottom-16 md:-bottom-32 -right-16 md:-right-32 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-tl from-[#4DA8DA]/20 to-[#2980B9]/5 rounded-full blur-2xl z-0"></div>
+          <div className="w-full max-w-[90%] sm:max-w-md mx-auto bg-gradient-to-br from-white via-[#f0f8ff] to-[#e0f7fa] rounded-2xl shadow-2xl border-2 border-[#4DA8DA]/20 p-6 md:p-8 lg:p-10 z-10 relative">
+            <div className="flex flex-col items-center mb-4 md:mb-6">
+              <FaUserCircle className="text-[#4DA8DA] text-5xl md:text-6xl mb-2 drop-shadow" />
+              <h1 className="text-2xl md:text-3xl font-extrabold text-center text-[#3a3a3c] mb-2">Crear una cuenta</h1>
+              <p className="text-sm md:text-base text-gray-500 text-center mb-2">¡Únete a TravelDream y comienza a planear tu próxima aventura!</p>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+              <div className="relative">
+                <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4DA8DA] text-sm md:text-base" />
                 <input
-                  name="name"
                   type="text"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-[#4DA8DA] focus:border-[#4DA8DA] focus:z-10 sm:text-sm"
                   placeholder="Nombre completo"
+                  className="w-full border rounded-lg p-2.5 md:p-3 pl-9 md:pl-10 text-sm md:text-base text-gray-900 focus:ring-2 focus:ring-[#4DA8DA] shadow-sm transition"
                   value={formData.name}
                   onChange={handleChange}
+                  name="name"
+                  required
                 />
               </div>
-              <div>
+              <div className="relative">
+                <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4DA8DA] text-sm md:text-base" />
                 <input
-                  name="email"
                   type="email"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#4DA8DA] focus:border-[#4DA8DA] focus:z-10 sm:text-sm"
                   placeholder="Correo electrónico"
+                  className="w-full border rounded-lg p-2.5 md:p-3 pl-9 md:pl-10 text-sm md:text-base text-gray-900 focus:ring-2 focus:ring-[#4DA8DA] shadow-sm transition"
                   value={formData.email}
                   onChange={handleChange}
+                  name="email"
+                  required
                 />
               </div>
-              <div>
+              <div className="relative">
+                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4DA8DA] text-sm md:text-base" />
                 <input
-                  name="password"
                   type="password"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#4DA8DA] focus:border-[#4DA8DA] focus:z-10 sm:text-sm"
                   placeholder="Contraseña"
+                  className="w-full border rounded-lg p-2.5 md:p-3 pl-9 md:pl-10 text-sm md:text-base text-gray-900 focus:ring-2 focus:ring-[#4DA8DA] shadow-sm transition"
                   value={formData.password}
                   onChange={handleChange}
+                  name="password"
+                  required
                 />
               </div>
-              <div>
+              <div className="relative">
+                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4DA8DA] text-sm md:text-base" />
                 <input
-                  name="confirmPassword"
                   type="password"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-[#4DA8DA] focus:border-[#4DA8DA] focus:z-10 sm:text-sm"
                   placeholder="Confirmar contraseña"
+                  className="w-full border rounded-lg p-2.5 md:p-3 pl-9 md:pl-10 text-sm md:text-base text-gray-900 focus:ring-2 focus:ring-[#4DA8DA] shadow-sm transition"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  name="confirmPassword"
+                  required
                 />
               </div>
-            </div>
-
-            <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#4DA8DA] hover:bg-[#3a8bb9] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4DA8DA]"
+                className="w-full py-2.5 md:py-3 bg-gradient-to-r from-[#4DA8DA] to-[#2980B9] text-white text-base md:text-lg font-bold rounded-xl shadow-lg hover:scale-105 hover:from-[#2980B9] hover:to-[#4DA8DA] transition-all duration-200"
               >
                 Registrarse
               </button>
+            </form>
+            <div className="mt-4 md:mt-6 text-center">
+              <a href="/login" className="text-sm md:text-base text-[#4DA8DA] hover:underline font-medium transition">
+                ¿Ya tienes cuenta? <span className="underline">Inicia sesión</span>
+              </a>
             </div>
-          </form>
-          <div className="text-center">
-            <Link to="/login" className="text-[#4DA8DA] hover:text-[#3a8bb9]">
-              ¿Ya tienes cuenta? Inicia sesión
-            </Link>
           </div>
         </div>
-      </div>
-    </div>
+      </PageTransition>
+      <Footer />
+    </>
   );
 };
 

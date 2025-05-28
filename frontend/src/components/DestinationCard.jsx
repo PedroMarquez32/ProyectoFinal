@@ -13,7 +13,12 @@ const DestinationCard = ({ destination }) => {
         }}
       />
       <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-xl font-semibold mb-2">{destination.title}</h3>
+        <a
+          href={`/destination/${destination.id}`}
+          className="font-bold text-lg text-black"
+        >
+          {destination.title}
+        </a>
         <p className="text-gray-600 mb-2">{destination.destination}</p>
         
         {/* Añadimos la descripción */}

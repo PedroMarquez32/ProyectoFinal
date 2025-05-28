@@ -133,8 +133,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   rating INTEGER CHECK (rating >= 1 AND rating <= 5),
   comment TEXT,
   is_approved BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT unique_user_trip UNIQUE (user_id, trip_id)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Crear tabla de favoritos
@@ -162,12 +161,15 @@ CREATE TABLE notifications (
 -- Crear tabla de pagos
 CREATE TABLE payments (
     id SERIAL PRIMARY KEY,
-    booking_id INTEGER REFERENCES bookings(id),
-    stripe_payment_intent_id VARCHAR(255),
+    booking_id INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     amount DECIMAL(10,2) NOT NULL,
-    status payment_status DEFAULT 'PENDING',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    payment_date DATE,
+    customer_name VARCHAR(255),      -- Nuevo: nombre del destinatario opcional
+    customer_email VARCHAR(255),     -- Nuevo: email del destinatario opcional
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Crear índices para mejorar el rendimiento
