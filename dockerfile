@@ -14,7 +14,7 @@ RUN npm install
 COPY backend/ .
 
 
-# 3. Producción: servir frontend y backend juntos
+# 3. Producción: servir frontend y backend juntos 
 FROM node:20-alpine
 WORKDIR /app
 
