@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
+import cors from 'cors';
 const cookieParser = require('cookie-parser');
 const { sequelize } = require('./models');
 const errorHandler = require('./middleware/errorHandler');
@@ -16,10 +16,19 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+const allowedOrigins = [
+  'https://proyectofinalfrontend-production-e48b.up.railway.app',
+  'http://localhost:4173'
+];
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173' || "https://proyectofinal-production-b22c.up.railway.app" || "https://traveldreams.com",
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  credentials: true
+  origin: allowedOrigins,
+  credentials: true 
 }));
 
 // Rutas
