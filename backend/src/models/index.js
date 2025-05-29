@@ -15,8 +15,6 @@ db.User = require('./User')(sequelize);
 db.Trip = require('./Trip')(sequelize);
 db.Booking = require('./Booking')(sequelize);
 db.Favorite = require('./Favorite')(sequelize);
-db.Feature = require('./Feature')(sequelize);
-db.TripImage = require('./TripImage')(sequelize);
 db.Review = require('./Review')(sequelize, Sequelize);
 db.Payment = require('./Payment')(sequelize);
 

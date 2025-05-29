@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import PageTransition from '../components/PageTransition';
+import Navbar from '../../components/layout/Navbar';
+import Footer from '../../components/layout/Footer';
+import PageTransition from '../../components/common/PageTransition';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaEuroSign, FaStar } from 'react-icons/fa';
 
 const popularDestinations = [
@@ -75,7 +75,7 @@ const CustomTripPage = () => {
 
       console.log('Sending data:', customTripData);
 
-      const response = await fetch('http://localhost:5000/api/custom-trips', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/custom-trips`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

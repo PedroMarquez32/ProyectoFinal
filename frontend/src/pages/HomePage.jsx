@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import FavoriteButton from '../components/FavoriteButton';
-import DestinationCard from '../components/DestinationCard';
-import PageTransition from '../components/PageTransition';
+import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
+import FavoriteButton from '../components/common/FavoriteButton';
+import DestinationCard from '../components/destinations/DestinationCard';
+import PageTransition from '../components/common/PageTransition';
 
 const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,7 +16,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchDestinations = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/trips/featured', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/trips/featured`, {
           credentials: 'include'
         });
         

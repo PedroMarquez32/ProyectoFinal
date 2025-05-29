@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import AdminSidebar from '../../components/AdminSidebar';
-import PageTransition from '../../components/PageTransition'; // Asegúrate de que la ruta sea correcta
+import AdminSidebar from '../../components/layout/AdminSidebar';
+import PageTransition from '../../components/common/PageTransition'; // Asegúrate de que la ruta sea correcta
 
 const UsersView = () => {
   const [users, setUsers] = useState([]);
@@ -18,7 +18,7 @@ const UsersView = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users`, {
         credentials: 'include'
       });
       
@@ -38,7 +38,7 @@ const UsersView = () => {
   // Renombrado para mayor claridad
   const fetchCurrentAdminData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
         credentials: 'include'
       });
       
@@ -55,7 +55,7 @@ const UsersView = () => {
     try {
       if (!editingUser) return;
 
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ const UsersView = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/users/${userId}/role`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}/role`, {
         method: 'PUT', // Cambiado de PATCH a PUT
         headers: {
           'Content-Type': 'application/json',

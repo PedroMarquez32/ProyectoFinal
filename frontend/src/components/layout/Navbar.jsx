@@ -10,7 +10,7 @@ const Navbar = () => {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
@@ -42,7 +42,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:5000/api/auth/logout', {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -75,15 +75,15 @@ const Navbar = () => {
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-8">
           <Link to="/destinations" className="text-white hover:text-[#4DA8DA] transition-colors">
-            Destinations
+            Destinos
           </Link>
           {isAuthenticated && (
             <Link to="/custom-trip" className="text-white hover:text-[#4DA8DA] transition-colors">
-              Custom Trip
+              Viaje Personalizado
             </Link>
           )}
           <Link to="/about" className="text-white hover:text-[#4DA8DA] transition-colors">
-            About Us
+            Sobre Nosotros
           </Link>
           {isAdmin && (
             <Link to="/admin" className="text-white hover:text-[#4DA8DA] transition-colors">

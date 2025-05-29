@@ -7,11 +7,11 @@ const AdminSidebar = ({ user }) => {
 
   const menuItems = [
     { path: '/admin', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/admin/users', icon: 'people', label: 'Users' },
-    { path: '/admin/destinations', icon: 'place', label: 'Destinations' },
-    { path: '/admin/bookings', icon: 'book', label: 'Bookings' },
-    { path: '/admin/finances', icon: 'attach_money', label: 'Finances' },
-    { path: '/admin/reviews', icon: 'star', label: 'Reviews' },
+    { path: '/admin/users', icon: 'people', label: 'Usuarios' },
+    { path: '/admin/destinations', icon: 'place', label: 'Destinos' },
+    { path: '/admin/bookings', icon: 'book', label: 'Reservas' },
+    { path: '/admin/finances', icon: 'attach_money', label: 'Pagos' },
+    { path: '/admin/reviews', icon: 'star', label: 'Reseñas' },
   ];
 
   return (

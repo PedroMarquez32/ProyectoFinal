@@ -12,7 +12,7 @@ const ReviewSection = ({ tripId, user }) => {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/reviews/trip/${tripId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews/trip/${tripId}`, {
         credentials: 'include'
       });
       if (response.ok) {
@@ -38,7 +38,7 @@ const ReviewSection = ({ tripId, user }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/reviews', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import AdminSidebar from '../../components/AdminSidebar';
-import PageTransition from '../../components/PageTransition';
+import AdminSidebar from '../../components/layout/AdminSidebar';
+import PageTransition from '../../components/common/PageTransition';
 import { buttonStyles } from '../../styles/buttons';
-import Spinner from '../../components/Spinner';
+import Spinner from '../../components/common/Spinner';
 
 const BookingsView = () => {
   const [bookings, setBookings] = useState([]);
@@ -28,7 +28,7 @@ const BookingsView = () => {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
         credentials: 'include'
       });
       
@@ -44,7 +44,7 @@ const BookingsView = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/bookings', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings`, {
         credentials: 'include'
       });
       
@@ -88,7 +88,7 @@ const BookingsView = () => {
 
   const fetchCustomTrips = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/custom-trips', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/custom-trips`, {
         credentials: 'include'
       });
       
@@ -105,7 +105,7 @@ const BookingsView = () => {
 
   const handleStatusChange = async (bookingId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}/status`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings/${bookingId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ const BookingsView = () => {
 
   const handleCustomTripStatusChange = async (tripId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/custom-trips/${tripId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/custom-trips/${tripId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ const BookingsView = () => {
   const handleEditBooking = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/api/bookings/${editingBooking.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings/${editingBooking.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ const BookingsView = () => {
   const handleEditCustomTrip = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/api/custom-trips/${editingCustomTrip.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/custom-trips/${editingCustomTrip.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -211,7 +211,7 @@ const BookingsView = () => {
   const handleDeleteBooking = async (bookingId) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta reserva? Esta acción no se puede deshacer.')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings/${bookingId}`, {
           method: 'DELETE',
           credentials: 'include'
         });
@@ -235,7 +235,7 @@ const BookingsView = () => {
   const handleDeleteCustomTrip = async (tripId) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este viaje personalizado? Esta acción no se puede deshacer.')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/custom-trips/${tripId}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/custom-trips/${tripId}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -463,6 +463,25 @@ const BookingsView = () => {
                       <h3 className="text-xl font-semibold mb-2 text-gray-800">
                         {trip.destination}
                       </h3>
+                      <div className="mb-2">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          trip.status === 'APPROVED'
+                            ? 'bg-green-100 text-green-800'
+                            : trip.status === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : trip.status === 'CANCELLED'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-gray-200 text-gray-800'
+                        }`}>
+                          {trip.status === 'APPROVED'
+                            ? 'Aprobado'
+                            : trip.status === 'PENDING'
+                            ? 'Pendiente'
+                            : trip.status === 'CANCELLED'
+                            ? 'Cancelado'
+                            : trip.status}
+                        </span>
+                      </div>
                       <div className="space-y-2 text-gray-600">
                         <p className="flex items-center gap-2">
                           <span className="text-[#4DA8DA]">👤</span>

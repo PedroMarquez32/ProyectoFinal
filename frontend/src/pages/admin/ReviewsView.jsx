@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import AdminSidebar from '../../components/AdminSidebar';
-import PageTransition from '../../components/PageTransition';
+import AdminSidebar from '../../components/layout/AdminSidebar';
+import PageTransition from '../../components/common/PageTransition';
 import { buttonStyles } from '../../styles/buttons';
-import Spinner from '../../components/Spinner';
+import Spinner from '../../components/common/Spinner';
 
 const ReviewsView = () => {
   const [reviews, setReviews] = useState([]);
@@ -20,7 +20,7 @@ const ReviewsView = () => {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
         credentials: 'include'
       });
       
@@ -35,7 +35,7 @@ const ReviewsView = () => {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/reviews', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews`, {
         credentials: 'include'
       });
       
@@ -53,7 +53,7 @@ const ReviewsView = () => {
   const handleDelete = async (reviewId) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta reseña?')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/reviews/${reviewId}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews/${reviewId}`, {
           method: 'DELETE',
           credentials: 'include'
         });
@@ -72,7 +72,7 @@ const ReviewsView = () => {
 
   const handleUpdate = async (reviewId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/reviews/${reviewId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews/${reviewId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ const ReviewsView = () => {
 
   const handleStatusChange = async (reviewId, status) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/reviews/${reviewId}/status`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews/${reviewId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ const ReviewsView = () => {
 
   const handleSaveEdit = async (reviewId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/reviews/${reviewId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews/${reviewId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

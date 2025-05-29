@@ -11,32 +11,22 @@ const path = require('path');
 const fs = require('fs');
 const financesRoutes = require('./routes/finances');
 
-// Asegurar que el directorio de uploads existe
-const uploadDir = path.join(__dirname, '../public/uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   credentials: true
 }));
-
-// Servir archivos estáticos desde la carpeta public
-app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // Rutas
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/trips', tripsRoutes);
 app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/custom-trips', customTripsRoutes);
-app.use('/api/contact', require('./routes/contact'));
 app.use('/api/favorites', require('./routes/favorites'));
 app.use('/api/users', require('./routes/users'));
 const reviewsRouter = require('./routes/reviews');

@@ -12,7 +12,7 @@ const FavoriteButton = ({ tripId }) => {
 
   const checkIfFavorite = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/favorites', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/favorites`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -29,7 +29,7 @@ const FavoriteButton = ({ tripId }) => {
   const toggleFavorite = async (e) => {
     e.preventDefault(); // Evitar que el click se propague
     try {
-      const response = await fetch(`http://localhost:5000/api/favorites/toggle/${tripId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/favorites/toggle/${tripId}`, {
         method: 'POST',
         credentials: 'include',
       });
