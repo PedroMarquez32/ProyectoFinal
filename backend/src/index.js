@@ -17,7 +17,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173' || 'https://proyectofinalfrontend-production-65e3.up.railway.app' || "https://traveldreams.com",
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173' || "https://proyectofinal-production-b22c.up.railway.app" || "https://traveldreams.com",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   credentials: true
 }));
