@@ -45,10 +45,11 @@ app.get('*', (req, res) => {
 app.use(errorHandler);
 
 // Sync database
-sequelize.sync({ alter: true }) // En desarrollo, en producción usar { force: false }
+sequelize.sync({ alter: true }) 
   .then(() => {
     console.log('Database synced');
-    const PORT = process.env.PORT || 5000;
+    const PORT = process.env.PORT || 5000 || "https://proyectofinal-production-b22c.up.railway.app"
+    // ;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
