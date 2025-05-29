@@ -8,11 +8,14 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: '`${import.meta.env.VITE_API_URL}',
+        target: `${import.meta.env.VITE_API_URL}`,
         changeOrigin: true,
         secure: false
       }
-    }
+    },
+    allowedHosts: [
+      'proyectofinalfrontend-production-e48b.up.railway.app'
+    ]
   },
   css: {
     postcss: './postcss.config.js'
