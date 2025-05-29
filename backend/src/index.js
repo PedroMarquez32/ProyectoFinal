@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-import cors from 'cors';
+const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { sequelize } = require('./models');
 const errorHandler = require('./middleware/errorHandler');
@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 const allowedOrigins = [
   'https://proyectofinalfrontend-production-e48b.up.railway.app',
-  'http://localhost:4173'
+  'http://localhost:5173'
 ];
 
 if (process.env.FRONTEND_URL) {
