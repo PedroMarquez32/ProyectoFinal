@@ -33,6 +33,14 @@ const reviewsRouter = require('./routes/reviews');
 app.use('/api/reviews', reviewsRouter);
 app.use('/api/finances', financesRoutes);
 
+// Sirve los archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Para rutas que no sean API, devuelve el index.html del frontend
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Error handling
 app.use(errorHandler);
 
