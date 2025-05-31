@@ -59,22 +59,19 @@ const CustomTripPage = () => {
     e.preventDefault();
     if (!validateForm()) return;
     
+    const customTripData = {
+      destination: formData.destination.trim(),
+      departure_date: formData.startDate,
+      return_date: formData.endDate,
+      number_of_participants: Number(formData.travelers),
+      budget_per_person: Number(formData.budget),
+      interests: formData.preferences,
+      accommodation_type: formData.accommodationType
+    };
+
+    console.log('Enviando customTripData:', customTripData);
+
     try {
-      const customTripData = {
-        destination: formData.destination.trim(),
-        departure_date: new Date(formData.startDate).toISOString().split('T')[0],
-        return_date: new Date(formData.endDate).toISOString().split('T')[0],
-        number_of_participants: parseInt(formData.travelers),
-        budget_per_person: parseFloat(formData.budget),
-        interests: formData.preferences.map(prefId => {
-          const pref = preferences.find(p => p.id === prefId);
-          return pref ? pref.label : prefId;
-        }),
-        accommodation_type: formData.accommodationType
-      };
-
-      console.log('Sending data:', customTripData);
-
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/custom-trips`, {
         method: 'POST',
         headers: {
