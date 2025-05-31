@@ -4,13 +4,14 @@ module.exports = (sequelize) => {
   class CustomTrip extends Model {}
 
   CustomTrip.init({
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
     user_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id'
-      }
+      allowNull: false
     },
     destination: {
       type: DataTypes.STRING,
@@ -33,15 +34,15 @@ module.exports = (sequelize) => {
       allowNull: false
     },
     interests: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-      defaultValue: []
+      type: DataTypes.ARRAY(DataTypes.TEXT),
+      allowNull: false
     },
     accommodation_type: {
       type: DataTypes.STRING,
       allowNull: false
     },
     status: {
-      type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED'),
+      type: DataTypes.STRING,
       defaultValue: 'PENDING'
     }
   }, {
@@ -49,7 +50,9 @@ module.exports = (sequelize) => {
     modelName: 'CustomTrip',
     tableName: 'custom_trips',
     underscored: true,
-    timestamps: true
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   });
 
   return CustomTrip;

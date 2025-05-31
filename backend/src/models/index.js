@@ -17,6 +17,7 @@ db.Booking = require('./Booking')(sequelize);
 db.Favorite = require('./Favorite')(sequelize);
 db.Review = require('./Review')(sequelize, Sequelize);
 db.Payment = require('./Payment')(sequelize);
+db.CustomTrip = require('./CustomTrip')(sequelize);
 
 // Definimos las relaciones
 db.User.hasMany(db.Booking, {
