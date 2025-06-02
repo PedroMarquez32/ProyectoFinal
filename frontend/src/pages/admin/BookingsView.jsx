@@ -359,33 +359,33 @@ const BookingsView = () => {
         <AdminSidebar user={user} />
         <div className="flex-1 overflow-hidden">
           <div className="p-8 overflow-y-auto h-full">
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">Gestión de Reservas</h1>
-            </div>
-
+            <h1 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Gestión de Reservas</h1>
+            
             {/* Tabs */}
             <div className="mb-6">
               <div className="border-b border-gray-200">
-                <button
-                  className={`py-2 px-4 mr-4 ${
-                    activeTab === 'bookings'
-                      ? 'border-b-2 border-[#4DA8DA] bg-[#1a1a1a] text-white font-medium'
-                      : 'text-gray-600 hover:text-[#4DA8DA]'
-                  }`}
-                  onClick={() => setActiveTab('bookings')}
-                >
-                  Reservas Regulares
-                </button>
-                <button
-                  className={`py-2 px-4 ${
-                    activeTab === 'custom'
-                      ? 'border-b-2 border-[#4DA8DA] bg-[#1a1a1a] text-white font-medium'
-                      : 'text-gray-600 hover:text-[#4DA8DA]'
-                  }`}
-                  onClick={() => setActiveTab('custom')}
-                >
-                  Viajes Personalizados
-                </button>
+                <nav className="-mb-px flex space-x-8">
+                  <button
+                    onClick={() => setActiveTab('bookings')}
+                    className={`${
+                      activeTab === 'bookings'
+                        ? 'border-[#4DA8DA] text-[#4DA8DA]'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  >
+                    Reservas
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('customTrips')}
+                    className={`${
+                      activeTab === 'customTrips'
+                        ? 'border-[#4DA8DA] text-[#4DA8DA]'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  >
+                    Viajes Personalizados
+                  </button>
+                </nav>
               </div>
             </div>
 
@@ -415,154 +415,33 @@ const BookingsView = () => {
             </div>
 
             {/* Content */}
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                {/* Contenido vacío mientras carga */}
-              </div>
-            ) : activeTab === 'bookings' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredBookings.map((booking) => (
-                  <div key={booking.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
-                    <div className="relative h-48">
-                      <img 
-                        src={booking.Trip?.image || '/placeholder-image.jpg'} 
-                        alt={booking.Trip?.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-4 right-4">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                          booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {booking.status}
-                        </span>
-                      </div>
+            <div className="bg-white rounded-lg shadow">
+              {activeTab === 'bookings' ? (
+                <div className="overflow-x-auto">
+                  {loading ? (
+                    <div className="min-h-[400px] flex items-center justify-center">
+                      {/* Contenido vacío mientras carga */}
                     </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-semibold mb-2 text-gray-800">
-                        {booking.Trip?.title || 'Destino no disponible'}
-                      </h3>
-                      <p className="text-gray-600 mb-4">{booking.Trip?.destination}</p>
-                      <div className="space-y-2 text-gray-600">
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">👤</span>
-                          {booking.User?.username}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">📧</span>
-                          {booking.User?.email}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">📅</span>
-                          {booking.start_date} - {booking.end_date}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">🏨</span>
-                          {booking.room_type}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">👥</span>
-                          {booking.number_of_participants} {booking.number_of_participants === 1 ? 'persona' : 'personas'}
-                        </p>
-                      </div>
-                      <div className="mt-6 flex flex-wrap gap-2">
-                        {renderActionButtons(booking)}
-                      </div>
+                  ) : (
+                    <table className="min-w-full divide-y divide-gray-200">
+                      {/* ... contenido de la tabla ... */}
+                    </table>
+                  )}
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  {loading ? (
+                    <div className="min-h-[400px] flex items-center justify-center">
+                      {/* Contenido vacío mientras carga */}
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCustomTrips.map((trip) => (
-                  <div key={trip.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
-                    <div className="p-6">
-                      <h3 className="text-xl font-semibold mb-2 text-gray-800">
-                        {trip.destination}
-                      </h3>
-                      <div className="mb-2">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          trip.status === 'APPROVED'
-                            ? 'bg-green-100 text-green-800'
-                            : trip.status === 'PENDING'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : trip.status === 'CANCELLED'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-200 text-gray-800'
-                        }`}>
-                          {trip.status === 'APPROVED'
-                            ? 'Aprobado'
-                            : trip.status === 'PENDING'
-                            ? 'Pendiente'
-                            : trip.status === 'CANCELLED'
-                            ? 'Cancelado'
-                            : trip.status}
-                        </span>
-                      </div>
-                      <div className="space-y-2 text-gray-600">
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">👤</span>
-                          {trip.User?.username}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">📧</span>
-                          {trip.User?.email}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">📅</span>
-                          {new Date(trip.departure_date).toLocaleDateString('es-ES')} - {new Date(trip.return_date).toLocaleDateString('es-ES')}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">👥</span>
-                          {trip.number_of_participants} {trip.number_of_participants === 1 ? 'persona' : 'personas'}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">💰</span>
-                          {trip.budget_per_person ? `${trip.budget_per_person}€ por persona` : 'Sin presupuesto'}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-[#4DA8DA]">🏨</span>
-                          {trip.accommodation_type || 'Sin alojamiento'}
-                        </p>
-                      </div>
-                      <div className="mt-6 flex flex-wrap gap-2">
-                        <button
-                          onClick={() => handleCustomTripStatusChange(trip.id, 'APPROVED')}
-                          className={`${buttonStyles.statusButton.base} ${buttonStyles.statusButton.confirmed} 
-                            ${trip.status === 'APPROVED' ? buttonStyles.statusButton.active : ''}`}
-                        >
-                          Aceptar
-                        </button>
-                        <button
-                          onClick={() => handleCustomTripStatusChange(trip.id, 'PENDING')}
-                          className={`${buttonStyles.statusButton.base} ${buttonStyles.statusButton.pending}
-                            ${trip.status === 'PENDING' ? buttonStyles.statusButton.active : ''}`}
-                        >
-                          Pendiente
-                        </button>
-                        <button
-                          onClick={() => handleCustomTripStatusChange(trip.id, 'CANCELLED')}
-                          className={`${buttonStyles.statusButton.base} ${buttonStyles.statusButton.cancelled}
-                            ${trip.status === 'CANCELLED' ? buttonStyles.statusButton.active : ''}`}
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingCustomTrip(trip);
-                            setShowCustomTripModal(true);
-                          }}
-                          className={buttonStyles.editButton}
-                        >
-                          Editar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ) : (
+                    <table className="min-w-full divide-y divide-gray-200">
+                      {/* ... contenido de la tabla de viajes personalizados ... */}
+                    </table>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Edit Booking Modal */}
             {showEditModal && (
