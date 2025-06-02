@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children }) => {
   }, []);
 
   if (loading) {
-    return <div>Cargando...</div>;
+    return <div></div>;
   }
 
   return isAuthenticated ? children : <Navigate to="/login" />;

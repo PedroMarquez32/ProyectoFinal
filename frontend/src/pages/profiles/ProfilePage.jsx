@@ -217,12 +217,12 @@ const ProfilePage = () => {
   ];
 
   if (loading ? (
-    <div className="flex justify-center items-center min-h-[60vh]">
+    <div className="flex justify-center items-center py-8">
       <Spinner />
     </div>
   ) : updateError ? (
     <div className="text-red-500 text-center py-4">{updateError}</div>
-  ) : !user) return <div>Loading...</div>;
+  ) : !user) return <div></div>;
 
   return (
     <>

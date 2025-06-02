@@ -68,7 +68,7 @@ const DestinationsPage = () => {
   const LoadingState = () => (
     <div className="col-span-full text-center py-6 md:py-8">
       <Spinner />
-      <p className="mt-2 text-gray-900">Cargando destinos...</p>
+      <p className="mt-2 text-gray-900"></p>
     </div>
   );
 

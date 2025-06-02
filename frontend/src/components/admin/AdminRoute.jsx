@@ -29,7 +29,7 @@ const AdminRoute = ({ children }) => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div></div>;
   }
 
   if (!isAdmin) {
