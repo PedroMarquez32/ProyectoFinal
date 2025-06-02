@@ -342,7 +342,6 @@ const BookingsView = () => {
       <div className="flex h-screen bg-gray-100">
         <AdminSidebar user={user} />
         <div className="flex-1 flex items-center justify-center">
-          <Spinner fullScreen />
         </div>
       </div>
     );
@@ -411,7 +410,7 @@ const BookingsView = () => {
 
             {/* Content */}
             {loading ? (
-              <Spinner />
+              <div className="flex justify-center items-center h-64"><Spinner /></div>
             ) : activeTab === 'bookings' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredBookings.map((booking) => (
