@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import PageTransition from '../../components/common/PageTransition'; // Asegúrate de que la ruta sea correcta
-import Spinner from '../../components/common/Spinner';
+
 
 const UsersView = () => {
   const [users, setUsers] = useState([]);

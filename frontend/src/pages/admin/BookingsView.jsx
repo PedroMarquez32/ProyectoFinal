@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import PageTransition from '../../components/common/PageTransition';
 import { buttonStyles } from '../../styles/buttons';
-import Spinner from '../../components/common/Spinner';
+
 
 const BookingsView = () => {
   const [bookings, setBookings] = useState([]);

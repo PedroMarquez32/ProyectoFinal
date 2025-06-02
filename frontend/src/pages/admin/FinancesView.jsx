@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import PageTransition from '../../components/common/PageTransition';
 import { buttonStyles } from '../../styles/buttons';
-import Spinner from '../../components/common/Spinner';
+
 
 const statusLabels = {
   completed: 'Completados',

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import PageTransition from '../../components/common/PageTransition';
-import Spinner from '../../components/common/Spinner';
+
 
 const DestinationsView = () => {
   const [state, setState] = useState({
