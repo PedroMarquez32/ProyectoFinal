@@ -103,6 +103,17 @@ const FinancesView = () => {
     { value: 'CANCELLED', label: 'Cancelar', style: buttonStyles.statusButton.cancelled }
   ];
 
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-100">
+        <AdminSidebar user={user} />
+        <div className="flex-1 flex items-center justify-center">
+          <Spinner fullScreen />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <PageTransition>
       <div className="flex h-screen bg-gray-100">

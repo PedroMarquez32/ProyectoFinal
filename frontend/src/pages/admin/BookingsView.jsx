@@ -337,6 +337,17 @@ const BookingsView = () => {
     return matchesSearch && matchesStatus;
   });
 
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-100">
+        <AdminSidebar user={user} />
+        <div className="flex-1 flex items-center justify-center">
+          <Spinner fullScreen />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <PageTransition>
       <div className="flex h-screen bg-gray-100">

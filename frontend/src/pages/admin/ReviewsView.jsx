@@ -153,6 +153,17 @@ const ReviewsView = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-100">
+        <AdminSidebar user={user} />
+        <div className="flex-1 flex items-center justify-center">
+          <Spinner fullScreen />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <PageTransition>
       <div className="flex h-screen bg-gray-100">
@@ -161,95 +172,91 @@ const ReviewsView = () => {
           <div className="p-8 overflow-y-auto h-full">
             <h1 className="text-2xl font-bold text-gray-800 mb-8">Gestión de Reseñas</h1>
 
-            {loading ? (
-              <Spinner />
-            ) : (
-              <div className="bg-white rounded-lg shadow">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Destino</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valoración</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Comentario</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {reviews.map((review) => (
-                      <tr key={review.id}>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">{review.Trip?.title || 'Destino no disponible'}</div>
-                          <div className="text-sm text-gray-500">{review.Trip?.destination || 'Ubicación no disponible'}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {editingReview?.id === review.id ? (
-                            <select
-                              value={editingReview.rating}
-                              onChange={(e) => setEditingReview({
-                                ...editingReview,
-                                rating: parseInt(e.target.value)
-                              })}
-                              className="border rounded px-2 py-1"
+            <div className="bg-white rounded-lg shadow">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Destino</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valoración</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Comentario</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {reviews.map((review) => (
+                    <tr key={review.id}>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">{review.Trip?.title || 'Destino no disponible'}</div>
+                        <div className="text-sm text-gray-500">{review.Trip?.destination || 'Ubicación no disponible'}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {editingReview?.id === review.id ? (
+                          <select
+                            value={editingReview.rating}
+                            onChange={(e) => setEditingReview({
+                              ...editingReview,
+                              rating: parseInt(e.target.value)
+                            })}
+                            className="border rounded px-2 py-1"
+                          >
+                            {[1, 2, 3, 4, 5].map(num => (
+                              <option key={num} value={num}>{num} ⭐</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-yellow-400">{'★'.repeat(review.rating)}</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {editingReview?.id === review.id ? (
+                          <textarea
+                            value={editingReview.comment}
+                            onChange={(e) => setEditingReview({
+                              ...editingReview,
+                              comment: e.target.value
+                            })}
+                            className="w-full border rounded p-2"
+                            rows="2"
+                          />
+                        ) : (
+                          review.comment
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          review.is_approved 
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {review.is_approved ? 'Approved' : 'Pending'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {editingReview?.id === review.id ? (
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleSaveEdit(review.id)}
+                              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                             >
-                              {[1, 2, 3, 4, 5].map(num => (
-                                <option key={num} value={num}>{num} ⭐</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <span className="text-yellow-400">{'★'.repeat(review.rating)}</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {editingReview?.id === review.id ? (
-                            <textarea
-                              value={editingReview.comment}
-                              onChange={(e) => setEditingReview({
-                                ...editingReview,
-                                comment: e.target.value
-                              })}
-                              className="w-full border rounded p-2"
-                              rows="2"
-                            />
-                          ) : (
-                            review.comment
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            review.is_approved 
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {review.is_approved ? 'Approved' : 'Pending'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          {editingReview?.id === review.id ? (
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => handleSaveEdit(review.id)}
-                                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                              >
-                                Save
-                              </button>
-                              <button
-                                onClick={() => setEditingReview(null)}
-                                className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            renderActionButtons(review)
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingReview(null)}
+                              className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          renderActionButtons(review)
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

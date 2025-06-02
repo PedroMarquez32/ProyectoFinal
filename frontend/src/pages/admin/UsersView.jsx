@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import PageTransition from '../../components/common/PageTransition'; // Asegúrate de que la ruta sea correcta
+import Spinner from '../../components/common/Spinner';
 
 const UsersView = () => {
   const [users, setUsers] = useState([]);
@@ -127,7 +128,16 @@ const UsersView = () => {
     </select>
   );
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-100">
+        <AdminSidebar user={currentAdmin} />
+        <div className="flex-1 flex items-center justify-center">
+          <Spinner fullScreen />
+        </div>
+      </div>
+    );
+  }
   if (error) return <div>Error: {error}</div>;
 
   return (

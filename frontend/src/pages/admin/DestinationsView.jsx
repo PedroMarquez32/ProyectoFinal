@@ -371,6 +371,17 @@ const DestinationsView = () => {
     );
   };
 
+  if (state.loading) {
+    return (
+      <div className="flex h-screen bg-gray-100">
+        <AdminSidebar user={state.user} />
+        <div className="flex-1 flex items-center justify-center">
+          <Spinner fullScreen />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <PageTransition>
       <div className="flex h-screen bg-gray-100">
@@ -387,8 +398,7 @@ const DestinationsView = () => {
                                   </button>
                               </div>
                               
-            {state.loading ? <Spinner /> :
-             state.error ? <div className="text-center py-4 text-red-600">{state.error}</div> :
+            {state.error ? <div className="text-center py-4 text-red-600">{state.error}</div> :
              renderTable()}
 
             {state.showAddModal && renderModal()}

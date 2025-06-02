@@ -222,16 +222,26 @@ const DestinationDetailPage = () => {
     </div>
   );
 
-  if (loading ? (
-    <div className="flex justify-center items-center min-h-[60vh]">
-      <Spinner />
-    </div>
-  ) : error ? (
-    <div className="text-red-500 text-center py-4">{error}</div>
-  ) : !destination) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[#f6e7d7] flex items-center justify-center">
-        <div className="text-2xl text-gray-600">{error || 'Destino no encontrado'}</div>
+      <div className="min-h-screen bg-[#FDF6ED] flex items-center justify-center">
+        <Spinner fullScreen />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#FDF6ED] flex items-center justify-center">
+        <div className="text-2xl text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (!destination) {
+    return (
+      <div className="min-h-screen bg-[#FDF6ED] flex items-center justify-center">
+        <div className="text-2xl text-gray-600">Destino no encontrado</div>
       </div>
     );
   }
