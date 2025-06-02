@@ -344,7 +344,9 @@ const BookingsView = () => {
         <div className="flex-1 overflow-hidden">
           <div className="p-8 overflow-y-auto h-full">
             <h1 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Gestión de Reservas</h1>
-            {/* Contenido vacío mientras carga */}
+            <div className="flex justify-center items-center h-64">
+              {/* Contenido vacío mientras carga */}
+            </div>
           </div>
         </div>
       </div>
@@ -414,7 +416,9 @@ const BookingsView = () => {
 
             {/* Content */}
             {loading ? (
-              <div className="flex justify-center items-center h-64"><Spinner /></div>
+              <div className="flex justify-center items-center h-64">
+                {/* Contenido vacío mientras carga */}
+              </div>
             ) : activeTab === 'bookings' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredBookings.map((booking) => (
