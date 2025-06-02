@@ -376,7 +376,6 @@ const DestinationsView = () => {
       <div className="flex h-screen bg-gray-100">
         <AdminSidebar user={state.user} />
         <div className="flex-1 flex items-center justify-center">
-          <Spinner fullScreen />
         </div>
       </div>
     );

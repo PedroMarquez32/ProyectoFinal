@@ -4,7 +4,6 @@ import AdminSidebar from '../../components/layout/AdminSidebar';
 import PageTransition from '../../components/common/PageTransition';
 import { buttonStyles } from '../../styles/buttons';
 
-
 const ReviewsView = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -158,7 +157,6 @@ const ReviewsView = () => {
       <div className="flex h-screen bg-gray-100">
         <AdminSidebar user={user} />
         <div className="flex-1 flex items-center justify-center">
-          <Spinner fullScreen />
         </div>
       </div>
     );

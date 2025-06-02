@@ -133,7 +133,6 @@ const UsersView = () => {
       <div className="flex h-screen bg-gray-100">
         <AdminSidebar user={currentAdmin} />
         <div className="flex-1 flex items-center justify-center">
-          <Spinner fullScreen />
         </div>
       </div>
     );
