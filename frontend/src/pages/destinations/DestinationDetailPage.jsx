@@ -314,7 +314,9 @@ const DestinationDetailPage = () => {
                   </div>
                 )}
                 <div className="pt-2 flex flex-col gap-2">
-                  {renderBookingButton()}
+                  <div className="mt-4">
+                    {renderBookingButton()}
+                  </div>
                 </div>
               </form>
             </div>
