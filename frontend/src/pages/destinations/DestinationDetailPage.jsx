@@ -308,11 +308,18 @@ const DestinationDetailPage = () => {
                   </div>
                 )}
                 <div className="pt-2 flex flex-col gap-2">
-                  <button type="submit" disabled={isProcessing} className="w-full bg-[#4DA8DA] text-white py-2 rounded-lg hover:bg-[#3a8bb9] transition-colors font-medium">
-                    {isProcessing ? 'Procesando...' : 'Reservar Ahora'}
-                  </button>
+                  {renderBookingButton()}
                 </div>
               </form>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mt-4 text-sm sm:text-base">
+              <h3 className="text-base sm:text-lg font-bold text-[#4DA8DA] mb-2">Resumen de tu Reserva</h3>
+              <div className="flex flex-col gap-1 text-gray-800 break-words">
+                <span><b>Fechas:</b> {currentBooking?.startDate || bookingForm.startDate} - {currentBooking?.endDate || bookingForm.endDate}</span>
+                <span><b>Tipo de Habitación:</b> {currentBooking?.roomType || bookingForm.roomType}</span>
+                <span><b>Huéspedes:</b> {currentBooking?.guests || bookingForm.guests}</span>
+                <span><b>Precio Total:</b> {currentBooking?.total_price || calculateTotal()}€</span>
+              </div>
             </div>
           </div>
         </div>
