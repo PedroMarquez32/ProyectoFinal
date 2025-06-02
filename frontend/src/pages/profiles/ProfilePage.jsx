@@ -4,6 +4,7 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import PageTransition from '../../components/common/PageTransition';
 import { FaSuitcase, FaHeart, FaMagic, FaUserEdit, FaCalendarAlt, FaUser, FaMoneyBillWave, FaBed } from 'react-icons/fa';
+import Spinner from '../../components/common/Spinner';
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('myTrips');
@@ -215,7 +216,13 @@ const ProfilePage = () => {
     }
   ];
 
-  if (!user) return <div>Loading...</div>;
+  if (loading ? (
+    <div className="flex justify-center items-center min-h-[60vh]">
+      <Spinner />
+    </div>
+  ) : updateError ? (
+    <div className="text-red-500 text-center py-4">{updateError}</div>
+  ) : !user) return <div>Loading...</div>;
 
   return (
     <>

@@ -4,6 +4,7 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import FavoriteButton from '../../components/common/FavoriteButton';
 import PageTransition from '../../components/common/PageTransition';
+import Spinner from '../../components/common/Spinner';
 
 const DestinationsPage = () => {
   const [destinations, setDestinations] = useState([]);
@@ -66,7 +67,7 @@ const DestinationsPage = () => {
 
   const LoadingState = () => (
     <div className="col-span-full text-center py-6 md:py-8">
-      <div className="inline-block animate-spin rounded-full h-6 w-6 md:h-8 md:w-8 border-b-2 border-gray-900"></div>
+      <Spinner />
       <p className="mt-2 text-gray-900">Cargando destinos...</p>
     </div>
   );
@@ -86,10 +87,17 @@ const DestinationsPage = () => {
         <div className="container mx-auto px-4 flex-grow pb-8 md:pb-10 lg:pb-12">
           <h2 className="text-xl md:text-2xl font-bold text-[#3a3a3c] mb-4 md:mb-6">Destinos Destacados</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-            {loading ? <LoadingState /> :
-             error ? <div className="col-span-full text-center py-6 md:py-8 text-red-600">{error}</div> :
-             destinations.length === 0 ? <div className="col-span-full text-center py-6 md:py-8 text-gray-900">No destinations found</div> :
-             destinations.map(destination => <DestinationCard key={destination.id} destination={destination} />)}
+            {loading ? (
+              <div className="flex justify-center items-center py-8">
+                <Spinner />
+              </div>
+            ) : error ? (
+              <div className="text-red-500 text-center py-4">{error}</div>
+            ) : destinations.length === 0 ? (
+              <div className="text-center py-4">No destinations found</div>
+            ) : (
+              destinations.map(destination => <DestinationCard key={destination.id} destination={destination} />)
+            )}
           </div>
         </div>
 

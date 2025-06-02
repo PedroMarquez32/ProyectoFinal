@@ -5,6 +5,7 @@ import Footer from '../components/layout/Footer';
 import FavoriteButton from '../components/common/FavoriteButton';
 import DestinationCard from '../components/destinations/DestinationCard';
 import PageTransition from '../components/common/PageTransition';
+import Spinner from '../components/common/Spinner';
 
 const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,22 +59,22 @@ const HomePage = () => {
           <section className="container mx-auto px-4 py-8 md:py-10 lg:py-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Destinos Destacados</h2>
             
-            {loading && (
-              <div className="text-center py-4">Cargando destinos...</div>
-            )}
-            
-            {error && (
+            {loading ? (
+              <div className="flex justify-center items-center py-8">
+                <Spinner />
+              </div>
+            ) : error ? (
               <div className="text-red-500 text-center py-4">{error}</div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {destinations.map(destination => (
+                  <DestinationCard 
+                    key={destination.id} 
+                    destination={destination} 
+                  />
+                ))}
+              </div>
             )}
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              {destinations.map(destination => (
-                <DestinationCard 
-                  key={destination.id} 
-                  destination={destination} 
-                />
-              ))}
-            </div>
           </section>
         </main>
 

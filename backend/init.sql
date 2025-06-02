@@ -140,10 +140,10 @@ CREATE INDEX idx_bookings_status ON bookings(status);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);
 
--- Insertar usuarios de prueba (actualizado con un usuario adicional)
+-- Insertar usuarios de prueba
 INSERT INTO users (email, username, hashed_password, role, full_name, phone_number, address, is_active) 
 VALUES 
-    ('admin@traveldream.com', 'admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewFpcqIYC1QyHgK6', 'ADMIN', 'Admin User', '+34600000000', 'Calle Admin 123', true),
+    ('admin123@traveldream.com', 'admin123', '$2b$12$wI6Qw1Qw1Qw1Qw1Qw1Qw1u1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1', 'ADMIN', 'Admin 123', '+34600000001', 'Calle Admin 456', true),
     ('prueba@gmail.com', 'prueba', '$2b$12$1Zw/jdqPVHNh.yVTwYz9/.vK0Q3G7EhB2dYoZFBcqwxK7s9v7fF0.', 'USER', 'Usuario Prueba', '+34600000001', 'Calle Prueba 123', true),
     ('test@gmail.com', 'test', '$2b$12$1Zw/jdqPVHNh.yVTwYz9/.vK0Q3G7EhB2dYoZFBcqwxK7s9v7fF0.', 'USER', 'Test User', '+34600000002', 'Calle Test 123', true);
 

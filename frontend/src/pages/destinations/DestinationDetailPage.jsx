@@ -5,6 +5,7 @@ import Footer from '../../components/layout/Footer';
 import FavoriteButton from '../../components/common/FavoriteButton';
 import ReviewSection from '../../components/destinations/ReviewSection';
 import ZoomPageTransition from '../../components/common/ZoomPageTransition';
+import Spinner from '../../components/common/Spinner';
 
 const DestinationDetailPage = () => {
   const { id } = useParams();
@@ -221,7 +222,13 @@ const DestinationDetailPage = () => {
     </div>
   );
 
-  if (error || !destination) {
+  if (loading ? (
+    <div className="flex justify-center items-center min-h-[60vh]">
+      <Spinner />
+    </div>
+  ) : error ? (
+    <div className="text-red-500 text-center py-4">{error}</div>
+  ) : !destination) {
     return (
       <div className="min-h-screen bg-[#f6e7d7] flex items-center justify-center">
         <div className="text-2xl text-gray-600">{error || 'Destino no encontrado'}</div>

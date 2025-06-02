@@ -4,6 +4,7 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import PageTransition from '../../components/common/PageTransition';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaEuroSign, FaStar } from 'react-icons/fa';
+import Spinner from '../../components/common/Spinner';
 
 const popularDestinations = [
   'Santorini, Grecia', 'Bali, Indonesia', 'Tokio, Japón', 'Barcelona, España',
@@ -34,6 +35,8 @@ const CustomTripPage = () => {
     preferences: [],
     accommodationType: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const validateForm = () => {
     if (!formData.destination) {
@@ -72,6 +75,8 @@ const CustomTripPage = () => {
     console.log('Enviando customTripData:', customTripData);
 
     try {
+      setLoading(true);
+      setError(null);
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/custom-trips`, {
         method: 'POST',
         headers: {
@@ -91,7 +96,9 @@ const CustomTripPage = () => {
       navigate('/profile');
     } catch (error) {
       console.error('Error:', error);
-      alert(error.message || 'Error al crear el viaje personalizado');
+      setError(error.message || 'Error al crear el viaje personalizado');
+    } finally {
+      setLoading(false);
     }
   };
 
