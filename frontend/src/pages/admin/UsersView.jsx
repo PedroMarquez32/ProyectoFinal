@@ -128,15 +128,6 @@ const UsersView = () => {
     </select>
   );
 
-  if (loading) {
-    return (
-      <div className="flex h-screen bg-gray-100">
-        <AdminSidebar user={currentAdmin} />
-        <div className="flex-1 flex items-center justify-center">
-        </div>
-      </div>
-    );
-  }
   if (error) return <div>Error: {error}</div>;
 
   return (
