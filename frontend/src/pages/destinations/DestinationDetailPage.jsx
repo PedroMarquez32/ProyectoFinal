@@ -260,7 +260,7 @@ const DestinationDetailPage = () => {
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-8 order-2 lg:order-1">
             <InfoSection title="Descripción General">
               <p className="text-gray-700 text-lg leading-relaxed mb-6">{destination.overview || destination.description}</p>
               <div className="grid grid-cols-2 gap-6">
@@ -296,7 +296,7 @@ const DestinationDetailPage = () => {
             </InfoSection>
             <ReviewSection tripId={id} user={user} />
           </div>
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 order-1 lg:order-2">
             <div className="bg-white rounded-2xl shadow-md p-4 border border-[#f3e6d0] sticky top-24 max-h-[90vh] flex flex-col justify-between">
               <h2 className="text-xl font-bold mb-2 text-[#4DA8DA] text-left">Detalles de la Reserva</h2>
               <form onSubmit={handleBookingSubmit} className="flex flex-col space-y-2 flex-grow">

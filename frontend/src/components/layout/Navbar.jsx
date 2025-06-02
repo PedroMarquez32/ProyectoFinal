@@ -121,7 +121,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         <div className={`
-          md:hidden absolute top-full left-0 right-0 bg-gray-800 
+          md:hidden absolute top-full left-0 right-0 bg-gray-800 z-50
           ${isMenuOpen ? 'block' : 'hidden'}
           transition-all duration-300 ease-in-out
         `}>
@@ -131,7 +131,7 @@ const Navbar = () => {
               className="text-white hover:text-[#4DA8DA] transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
-              Destinations
+              Destinos
             </Link>
             {isAuthenticated && (
               <Link 
@@ -139,7 +139,7 @@ const Navbar = () => {
                 className="text-white hover:text-[#4DA8DA] transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Custom Trip
+                Viaje Personalizado
               </Link>
             )}
             <Link 
@@ -147,7 +147,7 @@ const Navbar = () => {
               className="text-white hover:text-[#4DA8DA] transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
-              About Us
+              Sobre Nosotros
             </Link>
             {isAdmin && (
               <Link 
@@ -155,7 +155,7 @@ const Navbar = () => {
                 className="text-white hover:text-[#4DA8DA] transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Admin Dashboard
+                Panel de Admin
               </Link>
             )}
             {isAuthenticated ? (
