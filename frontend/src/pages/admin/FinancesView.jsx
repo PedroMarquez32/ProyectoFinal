@@ -172,7 +172,9 @@ const FinancesView = () => {
               </div>
               <div className="overflow-x-auto">
                 {loading ? (
-                  <div className="flex justify-center items-center h-64"><Spinner /></div>
+                  <div className="flex justify-center items-center h-64">
+                    {/* Contenido vacío mientras carga */}
+                  </div>
                 ) : (
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">

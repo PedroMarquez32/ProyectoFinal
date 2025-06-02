@@ -337,6 +337,20 @@ const BookingsView = () => {
     return matchesSearch && matchesStatus;
   });
 
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-100">
+        <AdminSidebar user={user} />
+        <div className="flex-1 overflow-hidden">
+          <div className="p-8 overflow-y-auto h-full">
+            <h1 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Gestión de Reservas</h1>
+            {/* Contenido vacío mientras carga */}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <PageTransition>
       <div className="flex h-screen bg-gray-100">
