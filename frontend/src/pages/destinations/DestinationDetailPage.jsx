@@ -6,6 +6,7 @@ import FavoriteButton from '../../components/common/FavoriteButton';
 import ReviewSection from '../../components/destinations/ReviewSection';
 import ZoomPageTransition from '../../components/common/ZoomPageTransition';
 import Spinner from '../../components/common/Spinner';
+import { FaCalendarAlt } from 'react-icons/fa';
 
 const DestinationDetailPage = () => {
   const { id } = useParams();
@@ -175,14 +176,34 @@ const DestinationDetailPage = () => {
     <div className={`space-y-4 ${isFormDisabled ? 'opacity-75' : ''}`}>
       <div>
         <label className="block text-gray-900 font-medium mb-2">Seleccionar Fechas</label>
-        <input type="date" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#4DA8DA] bg-white text-gray-900"
-          value={bookingForm.startDate} min={new Date().toISOString().split('T')[0]}
-          onChange={e => setBookingForm({ ...bookingForm, startDate: e.target.value })} required disabled={isFormDisabled} />
-      </div>
-      <div>
-        <input type="date" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#4DA8DA] bg-white text-gray-900"
-          value={bookingForm.endDate} min={bookingForm.startDate || new Date().toISOString().split('T')[0]}
-          onChange={e => setBookingForm({ ...bookingForm, endDate: e.target.value })} required disabled={isFormDisabled} />
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4DA8DA] pointer-events-none">
+            <FaCalendarAlt />
+          </span>
+          <input
+            type="date"
+            className="w-full p-3 pl-10 border rounded-lg focus:ring-2 focus:ring-[#4DA8DA] bg-white text-gray-900"
+            value={bookingForm.startDate}
+            min={new Date().toISOString().split('T')[0]}
+            onChange={e => setBookingForm({ ...bookingForm, startDate: e.target.value })}
+            required
+            disabled={isFormDisabled}
+          />
+        </div>
+        <div className="relative mt-2">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4DA8DA] pointer-events-none">
+            <FaCalendarAlt />
+          </span>
+          <input
+            type="date"
+            className="w-full p-3 pl-10 border rounded-lg focus:ring-2 focus:ring-[#4DA8DA] bg-white text-gray-900"
+            value={bookingForm.endDate}
+            min={bookingForm.startDate || new Date().toISOString().split('T')[0]}
+            onChange={e => setBookingForm({ ...bookingForm, endDate: e.target.value })}
+            required
+            disabled={isFormDisabled}
+          />
+        </div>
       </div>
       <div>
         <label className="block text-gray-900 font-medium mb-2">Tipo de Habitación</label>
@@ -297,7 +318,7 @@ const DestinationDetailPage = () => {
             <ReviewSection tripId={id} user={user} />
           </div>
           <div className="lg:col-span-1 order-1 lg:order-2">
-            <div className="bg-white rounded-2xl shadow-md p-4 border border-[#f3e6d0] sticky top-24 max-h-[90vh] flex flex-col justify-between">
+            <div className="bg-white rounded-2xl shadow-md p-2 sm:p-4 border border-[#f3e6d0] max-h-[90vh] flex flex-col justify-between mx-2 sm:mx-0 mb-4">
               <h2 className="text-xl font-bold mb-2 text-[#4DA8DA] text-left">Detalles de la Reserva</h2>
               <form onSubmit={handleBookingSubmit} className="flex flex-col space-y-2 flex-grow">
                 {renderFormInputs()}
@@ -307,9 +328,24 @@ const DestinationDetailPage = () => {
                     <div className="flex justify-between text-lg font-bold mt-1"><span className="text-gray-800">Precio Total</span><span className="text-[#4DA8DA]">{calculateTotal()}€</span></div>
                   </div>
                 )}
-                <div className="pt-2 flex flex-col gap-2">{renderBookingButton()}</div>
+                <div className="pt-2 flex flex-col gap-2">
+                  <button type="submit" disabled={isProcessing} className="w-full bg-[#4DA8DA] text-white py-2 rounded-lg hover:bg-[#3a8bb9] transition-colors font-medium">
+                    {isProcessing ? 'Procesando...' : 'Reservar Ahora'}
+                  </button>
+                </div>
               </form>
             </div>
+            {(currentBooking || bookingForm.startDate) && (
+              <div className="bg-blue-50 rounded-lg p-4 mt-4">
+                <h3 className="text-lg font-bold text-[#4DA8DA] mb-2">Resumen de tu Reserva</h3>
+                <div className="flex flex-col gap-1 text-gray-800">
+                  <span><b>Fechas:</b> {currentBooking?.startDate || bookingForm.startDate} - {currentBooking?.endDate || bookingForm.endDate}</span>
+                  <span><b>Tipo de Habitación:</b> {currentBooking?.roomType || bookingForm.roomType}</span>
+                  <span><b>Huéspedes:</b> {currentBooking?.guests || bookingForm.guests}</span>
+                  <span><b>Precio Total:</b> {currentBooking?.total_price || calculateTotal()}€</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <Footer />
