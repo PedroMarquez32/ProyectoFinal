@@ -6,7 +6,6 @@ import FavoriteButton from '../../components/common/FavoriteButton';
 import ReviewSection from '../../components/destinations/ReviewSection';
 import ZoomPageTransition from '../../components/common/ZoomPageTransition';
 import Spinner from '../../components/common/Spinner';
-import { FaCalendarAlt } from 'react-icons/fa';
 
 const DestinationDetailPage = () => {
   const { id } = useParams();
@@ -176,34 +175,14 @@ const DestinationDetailPage = () => {
     <div className={`space-y-4 ${isFormDisabled ? 'opacity-75' : ''}`}>
       <div>
         <label className="block text-gray-900 font-medium mb-2">Seleccionar Fechas</label>
-        <div className="relative">
-          <input
-            type="date"
-            className="w-full p-3 pr-10 border rounded-lg focus:ring-2 focus:ring-[#4DA8DA] bg-white text-gray-900"
-            value={bookingForm.startDate}
-            min={new Date().toISOString().split('T')[0]}
-            onChange={e => setBookingForm({ ...bookingForm, startDate: e.target.value })}
-            required
-            disabled={isFormDisabled}
-          />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4DA8DA] pointer-events-none">
-            <FaCalendarAlt />
-          </span>
-        </div>
-        <div className="relative mt-2">
-          <input
-            type="date"
-            className="w-full p-3 pr-10 border rounded-lg focus:ring-2 focus:ring-[#4DA8DA] bg-white text-gray-900"
-            value={bookingForm.endDate}
-            min={bookingForm.startDate || new Date().toISOString().split('T')[0]}
-            onChange={e => setBookingForm({ ...bookingForm, endDate: e.target.value })}
-            required
-            disabled={isFormDisabled}
-          />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4DA8DA] pointer-events-none">
-            <FaCalendarAlt />
-          </span>
-        </div>
+        <input type="date" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#4DA8DA] bg-white text-gray-900"
+          value={bookingForm.startDate} min={new Date().toISOString().split('T')[0]}
+          onChange={e => setBookingForm({ ...bookingForm, startDate: e.target.value })} required disabled={isFormDisabled} />
+      </div>
+      <div>
+        <input type="date" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#4DA8DA] bg-white text-gray-900"
+          value={bookingForm.endDate} min={bookingForm.startDate || new Date().toISOString().split('T')[0]}
+          onChange={e => setBookingForm({ ...bookingForm, endDate: e.target.value })} required disabled={isFormDisabled} />
       </div>
       <div>
         <label className="block text-gray-900 font-medium mb-2">Tipo de Habitación</label>
