@@ -296,8 +296,8 @@ const DestinationDetailPage = () => {
             </InfoSection>
             <ReviewSection tripId={id} user={user} />
           </div>
-          <div className="lg:col-span-1 order-1 lg:order-2">
-            <div className="bg-white rounded-2xl shadow-md p-2 sm:p-4 border border-[#f3e6d0] max-h-[90vh] flex flex-col justify-between mx-2 sm:mx-0 mb-4">
+          <div className="lg:col-span-1 flex flex-col order-1 lg:order-2">
+            <div className="bg-white rounded-2xl shadow-md p-2 sm:p-4 border border-[#f3e6d0] flex flex-col justify-between mx-2 sm:mx-0 mb-4">
               <h2 className="text-xl font-bold mb-2 text-[#4DA8DA] text-left">Detalles de la Reserva</h2>
               <form onSubmit={handleBookingSubmit} className="flex flex-col space-y-2 flex-grow">
                 {renderFormInputs()}
@@ -314,7 +314,7 @@ const DestinationDetailPage = () => {
                   </div>
                 )}
                 <div className="pt-2 flex flex-col gap-2">
-                  <div className="mt-4">
+                  <div className="mb-4">
                     {renderBookingButton()}
                   </div>
                 </div>
