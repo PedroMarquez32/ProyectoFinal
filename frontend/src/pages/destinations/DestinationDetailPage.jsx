@@ -259,7 +259,7 @@ const DestinationDetailPage = () => {
             </div>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           <div className="lg:col-span-2 space-y-8 order-2 lg:order-1">
             <InfoSection title="Descripción General">
               <p className="text-gray-700 text-lg leading-relaxed mb-6">{destination.overview || destination.description}</p>
@@ -303,8 +303,14 @@ const DestinationDetailPage = () => {
                 {renderFormInputs()}
                 {bookingForm.startDate && bookingForm.endDate && (
                   <div className="border-t pt-2 mt-2">
-                    <div className="flex justify-between"><span className="text-gray-600">Duración del viaje</span><span className="font-medium text-gray-800">{calculateNights(bookingForm.startDate, bookingForm.endDate)} noches</span></div>
-                    <div className="flex justify-between text-lg font-bold mt-1"><span className="text-gray-800">Precio Total</span><span className="text-[#4DA8DA]">{calculateTotal()}€</span></div>
+                    <div className="flex justify-between text-sm sm:text-base">
+                      <span className="text-gray-600">Duración del viaje</span>
+                      <span className="font-medium text-gray-800">{calculateNights(bookingForm.startDate, bookingForm.endDate)} noches</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold mt-1">
+                      <span className="text-gray-800">Precio Total</span>
+                      <span className="text-[#4DA8DA]">{calculateTotal()}€</span>
+                    </div>
                   </div>
                 )}
                 <div className="pt-2 flex flex-col gap-2">
@@ -312,13 +318,29 @@ const DestinationDetailPage = () => {
                 </div>
               </form>
             </div>
-            <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mt-4 text-sm sm:text-base">
+            <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-4 mx-2 sm:mx-0 text-sm sm:text-base">
               <h3 className="text-base sm:text-lg font-bold text-[#4DA8DA] mb-2">Resumen de tu Reserva</h3>
               <div className="flex flex-col gap-1 text-gray-800 break-words">
-                <span><b>Fechas:</b> {currentBooking?.startDate || bookingForm.startDate} - {currentBooking?.endDate || bookingForm.endDate}</span>
-                <span><b>Tipo de Habitación:</b> {currentBooking?.roomType || bookingForm.roomType}</span>
-                <span><b>Huéspedes:</b> {currentBooking?.guests || bookingForm.guests}</span>
-                <span><b>Precio Total:</b> {currentBooking?.total_price || calculateTotal()}€</span>
+                <span>
+                  <b>Fechas:</b>{" "}
+                  {(currentBooking?.startDate && currentBooking?.endDate)
+                    ? `${currentBooking.startDate} - ${currentBooking.endDate}`
+                    : (bookingForm.startDate && bookingForm.endDate)
+                      ? `${bookingForm.startDate} - ${bookingForm.endDate}`
+                      : "-"}
+                </span>
+                <span>
+                  <b>Tipo de Habitación:</b>{" "}
+                  {currentBooking?.roomType || bookingForm.roomType || "-"}
+                </span>
+                <span>
+                  <b>Huéspedes:</b>{" "}
+                  {currentBooking?.guests || bookingForm.guests || "-"}
+                </span>
+                <span>
+                  <b>Precio Total:</b>{" "}
+                  {currentBooking?.total_price || calculateTotal() + "€"}
+                </span>
               </div>
             </div>
           </div>
