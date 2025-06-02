@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import PageTransition from '../../components/common/PageTransition';
 import { buttonStyles } from '../../styles/buttons';
-
+import Spinner from '../../components/common/Spinner';
 
 const BookingsView = () => {
   const [bookings, setBookings] = useState([]);
@@ -337,22 +337,6 @@ const BookingsView = () => {
     return matchesSearch && matchesStatus;
   });
 
-  if (loading) {
-    return (
-      <div className="flex h-screen bg-gray-100">
-        <AdminSidebar user={user} />
-        <div className="flex-1 overflow-hidden">
-          <div className="p-8 overflow-y-auto h-full">
-            <h1 className="text-2xl font-bold mb-6 text-[#3a3a3c]">Gestión de Reservas</h1>
-            <div className="flex justify-center items-center h-64">
-              {/* Contenido vacío mientras carga */}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <PageTransition>
       <div className="flex h-screen bg-gray-100">
@@ -416,9 +400,7 @@ const BookingsView = () => {
 
             {/* Content */}
             {loading ? (
-              <div className="flex justify-center items-center h-64">
-                {/* Contenido vacío mientras carga */}
-              </div>
+              <Spinner />
             ) : activeTab === 'bookings' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredBookings.map((booking) => (
