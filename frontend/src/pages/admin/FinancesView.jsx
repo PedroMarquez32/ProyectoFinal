@@ -239,7 +239,9 @@ const FinancesView = () => {
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {new Date(transaction.created_at).toLocaleDateString()}
+                              {transaction.date
+                                ? new Date(transaction.date).toLocaleDateString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit' })
+                                : 'Sin fecha'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <div className="flex items-center space-x-2">

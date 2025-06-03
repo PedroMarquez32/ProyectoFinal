@@ -6,6 +6,7 @@ import FavoriteButton from '../../components/common/FavoriteButton';
 import ReviewSection from '../../components/destinations/ReviewSection';
 import ZoomPageTransition from '../../components/common/ZoomPageTransition';
 import Spinner from '../../components/common/Spinner';
+import { toast } from 'react-toastify';
 
 const DestinationDetailPage = () => {
   const { id } = useParams();
@@ -102,7 +103,11 @@ const DestinationDetailPage = () => {
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
-    if (!user) { alert('Debes iniciar sesión para reservar'); navigate('/login'); return; }
+    if (!user) {
+      toast.info('Debes iniciar sesión para reservar');
+      navigate('/login');
+      return;
+    }
     try {
       const bookingData = {
         trip_id: destination.id,
@@ -122,10 +127,10 @@ const DestinationDetailPage = () => {
         setCurrentBooking({ id: data.id, ...bookingData });
         localStorage.setItem(`bookingForm_${id}_${user.id}`, JSON.stringify(bookingForm));
         checkBookingStatus();
-        alert('¡Reserva realizada con éxito! Estado: Pendiente de aprobación');
+        toast.success('¡Reserva realizada con éxito! Estado: Pendiente de aprobación');
         setIsNewBooking(false);
       } else throw new Error(data.message || 'Error al realizar la reserva');
-    } catch (e) { alert(e.message); }
+    } catch (e) { toast.error(e.message); }
   };
 
   const handleNewBooking = () => {

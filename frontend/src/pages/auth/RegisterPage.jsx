@@ -4,6 +4,7 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import PageTransition from '../../components/common/PageTransition';
 import { FaUserCircle, FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const RegisterPage = () => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      alert('Las contraseñas no coinciden');
+      toast.error('Las contraseñas no coinciden');
       return;
     }
 
@@ -45,14 +46,14 @@ const RegisterPage = () => {
       const data = await response.json();
       
       if (response.ok) {
-        alert('Registro exitoso! Por favor, inicia sesión.');
+        toast.success('¡Registro exitoso! Por favor, inicia sesión.');
         navigate('/login');
       } else {
-        alert(data.message || 'Error en el registro');
+        toast.error(data.message || 'Error en el registro');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al conectar con el servidor');
+      toast.error('Error al conectar con el servidor');
     }
   };
 

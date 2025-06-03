@@ -5,6 +5,7 @@ import Footer from '../../components/layout/Footer';
 import PageTransition from '../../components/common/PageTransition';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaEuroSign, FaStar } from 'react-icons/fa';
 import Spinner from '../../components/common/Spinner';
+import { toast } from 'react-toastify';
 
 const popularDestinations = [
   'Santorini, Grecia', 'Bali, Indonesia', 'Tokio, Japón', 'Barcelona, España',
@@ -40,19 +41,19 @@ const CustomTripPage = () => {
 
   const validateForm = () => {
     if (!formData.destination) {
-      alert('Por favor, selecciona un destino');
+      toast.error('Por favor, selecciona un destino');
       return false;
     }
     if (!formData.startDate || !formData.endDate) {
-      alert('Por favor, selecciona las fechas del viaje');
+      toast.error('Por favor, selecciona las fechas del viaje');
       return false;
     }
     if (formData.preferences.length === 0) {
-      alert('Por favor, selecciona al menos una preferencia');
+      toast.error('Por favor, selecciona al menos una preferencia');
       return false;
     }
     if (!formData.accommodationType) {
-      alert('Por favor, selecciona un tipo de alojamiento');
+      toast.error('Por favor, selecciona un tipo de alojamiento');
       return false;
     }
     return true;
@@ -92,7 +93,7 @@ const CustomTripPage = () => {
         throw new Error(data.message || 'Error al crear el viaje personalizado');
       }
 
-      alert('¡Viaje personalizado creado con éxito!');
+      toast.success('¡Viaje personalizado creado con éxito!');
       navigate('/profile');
     } catch (error) {
       console.error('Error:', error);

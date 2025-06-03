@@ -58,6 +58,9 @@ La aplicación estará disponible en:
 2. Iniciar sesión con las credenciales de administrador:
    - Email: admin123@traveldream.com
    - Contraseña: 123456
+
+   -Email-Pagina desplegada: admin@traveldreams.com
+   -Contraseña: 123456
 3. Acceder al panel de administración desde el dashboard
 
 ### Funcionalidades de Administración
