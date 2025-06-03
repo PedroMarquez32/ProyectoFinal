@@ -94,8 +94,6 @@ La aplicación estará disponible en:
   - Eliminar contenido inapropiado
   - Responder a reseñas
 
-
-
 ## ⚙️ Variables de Entorno necesarias para desarrollo local
 
 ### Frontend (`/frontend/.env`)
@@ -119,3 +117,53 @@ POSTGRES_PORT=5432
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
 ```
+
+## 🔗 Endpoints importantes de la API
+
+A continuación se listan los endpoints REST más relevantes para el funcionamiento y pruebas de la plataforma:
+
+### Autenticación y Usuarios
+- `POST   /api/auth/register` — Registro de usuario
+- `POST   /api/auth/login` — Login de usuario
+- `GET    /api/auth/me` — Obtener usuario autenticado
+- `POST   /api/auth/logout` — Cerrar sesión
+
+- `GET    /api/users` — (Admin) Listar todos los usuarios
+- `PUT    /api/users/:id` — (Admin) Editar usuario por ID
+- `PUT    /api/users/:id/role` — (Admin) Cambiar rol de usuario
+- `DELETE /api/users/:id` — (Admin) Eliminar usuario
+
+### Destinos
+- `GET    /api/trips` — Listar destinos
+- `POST   /api/trips` — (Admin) Crear destino
+- `PUT    /api/trips/:id` — (Admin) Editar destino
+- `DELETE /api/trips/:id` — (Admin) Eliminar destino
+
+### Reservas
+- `GET    /api/bookings` — (Admin) Listar reservas
+- `POST   /api/bookings` — Crear reserva
+- `DELETE /api/bookings/:id` — (Admin) Eliminar reserva
+
+### Viajes Personalizados
+- `POST   /api/custom-trips` — Crear viaje personalizado
+- `GET    /api/custom-trips` — (Admin) Listar todos los viajes personalizados
+- `DELETE /api/custom-trips/:id` — (Admin) Eliminar viaje personalizado
+
+### Pagos
+- `GET    /api/finances/transactions` — (Admin) Listar pagos
+- `POST   /api/finances/manual` — (Admin) Añadir pago manual
+- `PATCH  /api/finances/transactions/:id/status` — (Admin) Cambiar estado de pago
+- `DELETE /api/finances/transactions/:id` — (Admin) Eliminar pago
+
+### Reseñas
+- `GET    /api/reviews` — Listar reseñas
+- `POST   /api/reviews` — Crear reseña
+- `DELETE /api/reviews/:id` — (Admin) Eliminar reseña
+
+---
+
+**Notas para desarrolladores:**
+- Todos los endpoints `/api/*` requieren autenticación por cookie (login previo).
+- Los endpoints marcados como **(Admin)** requieren usuario con rol de administrador.
+- Para desarrollo local, asegúrate de tener los archivos `.env` en `/frontend` y `/backend` como se indica en la sección anterior.
+- Si cambias los puertos o URLs, actualiza los `.env` y la configuración de Docker Compose si la usas.
