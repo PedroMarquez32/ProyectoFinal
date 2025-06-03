@@ -94,7 +94,6 @@ const CustomTripPage = () => {
       }
 
       toast.success('¡Viaje personalizado creado con éxito!');
-      alert('¡Viaje personalizado creado con éxito!');
       navigate('/profile');
     } catch (error) {
       console.error('Error:', error);
