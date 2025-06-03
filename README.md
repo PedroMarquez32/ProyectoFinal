@@ -94,10 +94,28 @@ La aplicación estará disponible en:
   - Eliminar contenido inapropiado
   - Responder a reseñas
 
-## 🔧 Soporte Técnico
 
-Para cualquier consulta o soporte técnico, por favor contactar al equipo de desarrollo.
 
-## 📝 Licencia
+## ⚙️ Variables de Entorno necesarias para desarrollo local
 
-Este proyecto está bajo la Licencia MIT.
+### Frontend (`/frontend/.env`)
+Crea un archivo `.env` en la carpeta `frontend` con el siguiente contenido:
+
+```
+VITE_API_URL=http://localhost:5000
+```
+
+### Backend (`/backend/.env`)
+Crea un archivo `.env` en la carpeta `backend` con el siguiente contenido:
+
+```
+PORT=5000
+JWT_SECRET=tuSecretoMuySeguroAqui
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=postgres
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+```
