@@ -20,10 +20,6 @@ const sequelize = new Sequelize({
     idle: 10000
   },
   dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false
-    },
     connectTimeout: 60000
   }
 });
