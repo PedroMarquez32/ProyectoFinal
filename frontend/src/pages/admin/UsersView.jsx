@@ -116,6 +116,27 @@ const UsersView = () => {
     }
   };
 
+  const handleDeleteUser = async (userId) => {
+    if (userId === currentAdmin?.id) {
+      alert('No puedes eliminar tu propio usuario.');
+      return;
+    }
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.')) return;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al eliminar usuario');
+      }
+      setUsers(users.filter(u => u.id !== userId));
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   const renderRoleSelector = (userToEdit) => (
     <select
       value={userToEdit.role}
@@ -202,6 +223,13 @@ const UsersView = () => {
                                 className="text-[#4DA8DA] hover:text-[#3a8bb9]"
                               >
                                 Editar
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(user.id)}
+                                className="text-red-600 hover:text-red-800"
+                                disabled={user.id === currentAdmin?.id}
+                              >
+                                Borrar
                               </button>
                             </div>
                           )}

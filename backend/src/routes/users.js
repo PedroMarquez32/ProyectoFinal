@@ -93,4 +93,19 @@ router.put('/:id', [auth, isAdmin], async (req, res) => {
   }
 });
 
+// Delete user (admin only)
+router.delete('/:id', [auth, isAdmin], async (req, res) => {
+  try {
+    if (parseInt(req.params.id) === req.user.id) {
+      return res.status(400).json({ message: 'No puedes eliminar tu propio usuario.' });
+    }
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+    await user.destroy();
+    res.json({ message: 'Usuario eliminado correctamente' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar usuario' });
+  }
+});
+
 module.exports = router;
