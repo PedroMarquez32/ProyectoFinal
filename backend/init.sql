@@ -98,7 +98,7 @@ CREATE TABLE bookings (
 CREATE TABLE IF NOT EXISTS reviews (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
-  trip_id INTEGER REFERENCES trips(id),
+  trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,
   rating INTEGER CHECK (rating >= 1 AND rating <= 5),
   comment TEXT,
   is_approved BOOLEAN DEFAULT false,

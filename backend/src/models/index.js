@@ -69,8 +69,14 @@ db.Review.belongsTo(db.User, {
   foreignKey: 'user_id'
 });
 
+db.Trip.hasMany(db.Review, {
+  foreignKey: 'trip_id',
+  sourceKey: 'id',
+  onDelete: 'CASCADE'
+});
 db.Review.belongsTo(db.Trip, {
-  foreignKey: 'trip_id'
+  foreignKey: 'trip_id',
+  onDelete: 'CASCADE'
 });
 
 // Definir las asociaciones para Payment
