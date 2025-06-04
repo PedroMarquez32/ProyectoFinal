@@ -17,18 +17,12 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-const allowedOrigins = [
-  'https://proyectofinalfrontend-production-e48b.up.railway.app',
-  'http://localhost:5173'
-];
-
-if (process.env.FRONTEND_URL) {
-  allowedOrigins.push(process.env.FRONTEND_URL);
-}
-
+// Configuración de CORS
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true 
+  origin: ['https://proyectofinalfrontend-production-e48b.up.railway.app', 'http://localhost:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Rutas
