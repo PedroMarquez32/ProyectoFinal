@@ -133,7 +133,7 @@ const FinancesView = () => {
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <form className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md" onSubmit={handleAddPayment}>
                   <h2 className="text-xl font-bold mb-4 text-black">Add Payment</h2>
-                  {['customer_name', 'customer_email', 'amount'].map(field => (
+                  {['customer_name', 'customer_email', 'booking_id', 'user_id', 'amount'].map(field => (
                     <div key={field}>
                       <label className="block mb-2 text-black">{field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</label>
                       <input
