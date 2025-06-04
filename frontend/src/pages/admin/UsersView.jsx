@@ -121,30 +121,19 @@ const UsersView = () => {
       alert('No puedes eliminar tu propio usuario.');
       return;
     }
-
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.')) {
-      return;
-    }
-
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.')) return;
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}`, {
         method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        credentials: 'include'
       });
-
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al eliminar usuario');
+        const data = await response.json();
+        throw new Error(data.message || 'Error al eliminar usuario');
       }
-
-      // Actualizar la lista de usuarios
       setUsers(users.filter(u => u.id !== userId));
     } catch (error) {
-      console.error('Error:', error);
-      alert(error.message || 'Error al eliminar usuario. Por favor, inténtalo de nuevo.');
+      alert(error.message);
     }
   };
 

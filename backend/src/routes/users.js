@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
 const { auth, isAdmin } = require('../middleware/auth');
-const { Review, Payment, Booking, CustomTrip } = require('../models');
-const { sequelize } = require('../config/database');
 
 // Update user profile
 router.put('/update', auth, async (req, res) => {
@@ -97,73 +95,16 @@ router.put('/:id', [auth, isAdmin], async (req, res) => {
 
 // Delete user (admin only)
 router.delete('/:id', [auth, isAdmin], async (req, res) => {
-  const t = await sequelize.transaction();
-  
   try {
     if (parseInt(req.params.id) === req.user.id) {
-      await t.rollback();
       return res.status(400).json({ message: 'No puedes eliminar tu propio usuario.' });
     }
-
     const user = await User.findByPk(req.params.id);
-    if (!user) {
-      await t.rollback();
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-
-    // Eliminar en orden y con manejo de errores individual
-    try {
-      // Reviews
-      await Review.destroy({
-        where: { user_id: user.id },
-        transaction: t
-      });
-    } catch (error) {
-      console.error('Error eliminando reviews:', error);
-    }
-
-    try {
-      // Payments
-      await Payment.destroy({
-        where: { user_id: user.id },
-        transaction: t
-      });
-    } catch (error) {
-      console.error('Error eliminando pagos:', error);
-    }
-
-    try {
-      // Bookings
-      await Booking.destroy({
-        where: { user_id: user.id },
-        transaction: t
-      });
-    } catch (error) {
-      console.error('Error eliminando reservas:', error);
-    }
-
-    try {
-      // Custom Trips
-      await CustomTrip.destroy({
-        where: { user_id: user.id },
-        transaction: t
-      });
-    } catch (error) {
-      console.error('Error eliminando viajes personalizados:', error);
-    }
-
-    // Finalmente eliminar el usuario
-    await user.destroy({ transaction: t });
-
-    await t.commit();
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+    await user.destroy();
     res.json({ message: 'Usuario eliminado correctamente' });
   } catch (error) {
-    await t.rollback();
-    console.error('Error al eliminar usuario:', error);
-    res.status(500).json({ 
-      message: 'Error al eliminar usuario',
-      error: error.message 
-    });
+    res.status(500).json({ message: 'Error al eliminar usuario' });
   }
 });
 

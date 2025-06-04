@@ -163,42 +163,22 @@ router.patch('/transactions/:id/amount', [auth, isAdmin], async (req, res) => {
 router.post('/manual', [auth, isAdmin], async (req, res) => {
   try {
     const { booking_id, user_id, amount, status, customer_name, customer_email } = req.body;
-    
-    // Validate required fields
     if (!amount || !status) {
       return res.status(400).json({ message: 'Faltan campos obligatorios' });
     }
-
-    // Validate amount is a positive number
-    const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      return res.status(400).json({ message: 'El monto debe ser un número positivo' });
-    }
-
-    // Validate status is one of the allowed values
-    const validStatuses = ['PENDING', 'COMPLETED', 'CANCELLED'];
-    const normalizedStatus = status.toUpperCase();
-    if (!validStatuses.includes(normalizedStatus)) {
-      return res.status(400).json({ message: 'Estado no válido' });
-    }
-
     const payment = await Payment.create({
       booking_id: booking_id || null,
       user_id: user_id || null,
-      amount: parsedAmount,
-      status: normalizedStatus,
+      amount,
+      status,
       customer_name: customer_name || null,
       customer_email: customer_email || null,
-      payment_date: normalizedStatus === 'COMPLETED' ? new Date() : null
+      payment_date: status === 'COMPLETED' ? new Date() : null
     });
-
     res.status(201).json(payment);
   } catch (error) {
     console.error('Error creando pago manual:', error);
-    res.status(500).json({ 
-      message: 'Error creando pago manual',
-      error: error.message 
-    });
+    res.status(500).json({ message: 'Error creando pago manual' });
   }
 });
 
