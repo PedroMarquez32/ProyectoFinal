@@ -15,7 +15,7 @@ router.post('/', auth, async (req, res) => {
       trip_id,
       rating,
       comment,
-      is_approved: true // Cambiar a true por defecto
+      is_approved: true 
     });
 
     // Incluir la información del usuario al devolver la review

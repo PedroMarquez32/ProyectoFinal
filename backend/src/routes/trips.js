@@ -49,7 +49,7 @@ router.get('/:id', async (req, res) => {
         'duration', 'rating', 'image', 'max_participants',
         'overview', 'highlights', 'itinerary'
       ],
-      raw: true // Agregar esta opción para obtener un objeto plano
+      raw: true 
     });
     
     if (!trip) {

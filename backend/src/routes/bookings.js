@@ -176,7 +176,7 @@ router.put('/:id', [auth, isAdmin], async (req, res) => {
 
     if (payment) {
       await payment.update({
-        payment_date: departure_date // Update payment date to match new departure
+        payment_date: departure_date 
       });
     }
 

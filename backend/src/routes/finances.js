@@ -54,7 +54,6 @@ router.get('/transactions', [auth, isAdmin], async (req, res) => {
 
     const formattedTransactions = payments.map(payment => {
       const plainPayment = payment.get({ plain: true });
-      // Primero intentar obtener el usuario del pago directo, luego de la reserva
       const user = plainPayment.User || plainPayment.Booking?.User;
       
       return {
