@@ -211,7 +211,7 @@ router.put('/:id', [auth, isAdmin], async (req, res) => {
   }
 });
 
-//  Eliminar custom trips
+// Añade esta ruta para eliminar custom trips
 router.delete('/:id', [auth, isAdmin], async (req, res) => {
   try {
     const query = `
