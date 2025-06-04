@@ -3,7 +3,7 @@ const router = express.Router();
 const { User } = require('../models');
 const { auth, isAdmin } = require('../middleware/auth');
 const { Review, Payment, Booking, CustomTrip } = require('../models');
-const { sequelize } = require('../database');
+const { sequelize } = require('../config/database');
 
 // Update user profile
 router.put('/update', auth, async (req, res) => {
