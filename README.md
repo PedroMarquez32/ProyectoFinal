@@ -63,6 +63,56 @@ La aplicación estará disponible en:
    -Contraseña: 123456
 3. Acceder al panel de administración desde el dashboard
 
+## 📊 Ejemplo de Destino para Añadir
+
+### Dubái Lujo
+```json
+{
+  "title": "Dubái Lujo",
+  "destination": "Dubái, Emiratos Árabes Unidos",
+  "description": "Experimenta el lujo y la modernidad en la ciudad más impresionante de Oriente Medio.",
+  "price": 2500,
+  "duration": 6,
+  "rating": 4.8,
+  "image": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c",
+  "start_date": "2024-06-01",
+  "end_date": "2024-06-06",
+  "max_participants": 15,
+  "original_price": 2800,
+  "overview": "Dubái, la ciudad de los superlativos, te espera con sus rascacielos impresionantes, desierto dorado y lujosos centros comerciales. Una experiencia única que combina tradición árabe con modernidad extrema.",
+  "highlights": [
+    "Burj Khalifa",
+    "Safari en el desierto",
+    "Dubai Mall",
+    "Palm Jumeirah",
+    "Mercado de las especias",
+    "Cena en el desierto"
+  ],
+  "itinerary": [
+    {
+      "day": 1,
+      "title": "Bienvenida a Dubái",
+      "activities": [
+        "Traslado al hotel",
+        "Visita al Burj Khalifa",
+        "Cena en restaurante con vistas panorámicas"
+      ]
+    },
+    {
+      "day": 2,
+      "title": "Desierto y Tradición",
+      "activities": [
+        "Safari en el desierto",
+        "Show de halcones",
+        "Cena tradicional en el campamento"
+      ]
+    }
+  ]
+}
+```
+
+Este ejemplo incluye todos los campos necesarios. Puedes copiarlo y pegarlo directamente en el formulario de creación de destinos del admin para probarlo.
+
 ### Funcionalidades de Administración
 - **Gestión de Usuarios**
   - Ver información de usuarios
