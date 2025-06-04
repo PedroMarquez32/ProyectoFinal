@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { User } = require('../models');
+const { User, Review, Booking, Favorite, CustomTrip, Payment } = require('../models');
 const { auth, isAdmin } = require('../middleware/auth');
+const { sequelize } = require('../config/database');
 
 // Update user profile
 router.put('/update', auth, async (req, res) => {
@@ -101,9 +102,30 @@ router.delete('/:id', [auth, isAdmin], async (req, res) => {
     }
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+    // Elimina reviews
+    await Review.destroy({ where: { user_id: user.id } });
+    // Elimina favoritos
+    await Favorite.destroy({ where: { user_id: user.id } });
+    // Elimina custom trips
+    await CustomTrip.destroy({ where: { user_id: user.id } });
+
+    // Elimina bookings y sus pagos
+    const bookings = await Booking.findAll({ where: { user_id: user.id } });
+    for (const booking of bookings) {
+      await Payment.destroy({ where: { booking_id: booking.id } });
+      await booking.destroy();
+    }
+
+    // Elimina pagos sueltos (no asociados a booking)
+    await Payment.destroy({ where: { user_id: user.id } });
+
+    // Finalmente elimina el usuario
     await user.destroy();
+
     res.json({ message: 'Usuario eliminado correctamente' });
   } catch (error) {
+    console.error('Error al eliminar usuario:', error);
     res.status(500).json({ message: 'Error al eliminar usuario' });
   }
 });
