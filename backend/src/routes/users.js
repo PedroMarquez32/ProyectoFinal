@@ -101,6 +101,7 @@ router.delete('/:id', [auth, isAdmin], async (req, res) => {
   
   try {
     if (parseInt(req.params.id) === req.user.id) {
+      await t.rollback();
       return res.status(400).json({ message: 'No puedes eliminar tu propio usuario.' });
     }
 
@@ -110,31 +111,48 @@ router.delete('/:id', [auth, isAdmin], async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Primero eliminamos las reviews del usuario
-    await Review.destroy({
-      where: { user_id: user.id },
-      transaction: t
-    });
+    // Eliminar en orden y con manejo de errores individual
+    try {
+      // Reviews
+      await Review.destroy({
+        where: { user_id: user.id },
+        transaction: t
+      });
+    } catch (error) {
+      console.error('Error eliminando reviews:', error);
+    }
 
-    // Luego eliminamos los pagos del usuario
-    await Payment.destroy({
-      where: { user_id: user.id },
-      transaction: t
-    });
+    try {
+      // Payments
+      await Payment.destroy({
+        where: { user_id: user.id },
+        transaction: t
+      });
+    } catch (error) {
+      console.error('Error eliminando pagos:', error);
+    }
 
-    // Eliminamos las reservas del usuario
-    await Booking.destroy({
-      where: { user_id: user.id },
-      transaction: t
-    });
+    try {
+      // Bookings
+      await Booking.destroy({
+        where: { user_id: user.id },
+        transaction: t
+      });
+    } catch (error) {
+      console.error('Error eliminando reservas:', error);
+    }
 
-    // Eliminamos los viajes personalizados del usuario
-    await CustomTrip.destroy({
-      where: { user_id: user.id },
-      transaction: t
-    });
+    try {
+      // Custom Trips
+      await CustomTrip.destroy({
+        where: { user_id: user.id },
+        transaction: t
+      });
+    } catch (error) {
+      console.error('Error eliminando viajes personalizados:', error);
+    }
 
-    // Finalmente eliminamos el usuario
+    // Finalmente eliminar el usuario
     await user.destroy({ transaction: t });
 
     await t.commit();
@@ -142,7 +160,10 @@ router.delete('/:id', [auth, isAdmin], async (req, res) => {
   } catch (error) {
     await t.rollback();
     console.error('Error al eliminar usuario:', error);
-    res.status(500).json({ message: 'Error al eliminar usuario' });
+    res.status(500).json({ 
+      message: 'Error al eliminar usuario',
+      error: error.message 
+    });
   }
 });
 
